@@ -1,36 +1,43 @@
 'use strict';
 
 function TodoApp(scope) {
-    scope.todos = [];
     scope.newTodo = '';
     scope.editedTodo = null;
-    scope.remainingCount = 0;
     scope.allChecked = false;
+    
+    scope.save = function() {
+        localStorage['todos-alight'] = JSON.stringify( scope.todos )
+    }
+    
+    scope.load = function() {
+        scope.todos = JSON.parse( localStorage['todos-alight'] || '[]' )
+    }
 
+    scope.load();
+    
     scope.addTodo = function() {
         scope.todos.push({
             title: scope.newTodo,
             completed: false
         });
         scope.newTodo = '';
-        scope.remainingCount++;
+        scope.save()
     };
 
     scope.markTodo = function(todo) {
-        if(todo.completed) scope.remainingCount--;
-        else scope.remainingCount++
+        scope.save()
     };
 
     scope.markAll = function(value) {
-        console.log(value);
         scope.todos.map(function(todo) {
             todo.completed = value
         })
+        scope.save()
     };
 
     scope.removeTodo = function(todo) {
         scope.todos.splice(scope.todos.indexOf(todo), 1);
-        if(!todo.completed) scope.remainingCount--;
+        scope.save()
     };
 
     scope.filteredList = function() {
@@ -44,10 +51,27 @@ function TodoApp(scope) {
         })
     };
 
+    scope.remainingCount = function() {
+        var count = 0
+        scope.todos.forEach(function(d) {
+            if( !d.completed ) ++count
+        })
+        return count
+    };
+
+    scope.completedCount = function() {
+        var count = 0
+        scope.todos.forEach(function(d) {
+            if( d.completed ) ++count
+        })
+        return count
+    };
+
     scope.clearCompletedTodos = function() {
         scope.todos = scope.todos.filter(function(d) {
             return !d.completed
         })
+        scope.save()
     };
 
     var prevTitle = '';
@@ -58,6 +82,7 @@ function TodoApp(scope) {
 
     scope.doneEditing = function(todo) {
         scope.editedTodo = null
+        scope.save()
     };
 
     scope.revertEditing = function(todo) {

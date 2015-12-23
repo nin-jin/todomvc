@@ -473,7 +473,7 @@ var $jin2_atom = (function (_super) {
     $jin2_atom.schedule = function () {
         if (this._timer)
             return;
-        this._timer = requestAnimationFrame(this.induce.bind(this));
+        this._timer = setTimeout(this.induce.bind(this));
     };
     $jin2_atom.induce = function () {
         if (this._timer) {
@@ -711,7 +711,10 @@ var $jin2_view_div = (function (_super) {
                 for (var name in events)
                     (function (name) {
                         var prop = events[name];
-                        router.addEventListener(name, prop.set.bind(prop), false);
+                        router.addEventListener(name, function (event) {
+                            prop.set(event);
+                            $jin2_atom.induce();
+                        }, false);
                     })(name);
                 var proto1 = _this.objectOwner;
                 while (proto1 && (proto1 !== $jin2_view_div.prototype)) {

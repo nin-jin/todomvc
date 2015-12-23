@@ -31,7 +31,7 @@
 				</ul>
 			</section>
 			<footer id="footer" al-show="todos.length">
-				<span id="todo-count"><strong>{{remainingCount}}</strong> item left</span>
+				<span id="todo-count"><strong>{{remainingCount()}}</strong> item left</span>
 				<ul id="filters">
 					<li>
 						<a al-class="selected: path == ''" al-click="path=''" href="#">All</a>
@@ -43,7 +43,7 @@
 						<a al-class="selected: path == 'completed'" al-click="path='completed'" href="#completed">Completed</a>
 					</li>
 				</ul>
-				<button id="clear-completed" al-click="clearCompletedTodos()" al-show="remainingCount < todos.length">Clear completed ({{todos.length - remainingCount}})</button>
+				<button id="clear-completed" al-click="clearCompletedTodos()" al-show="completedCount() > 0">Clear completed ({{completedCount()}})</button>
 			</footer>
 		</section>
 		<footer id="info">
