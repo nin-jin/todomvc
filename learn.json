@@ -89,7 +89,7 @@
 		"homepage": "github.com/angular/angular.dart",
 		"examples": [{
 			"name": "Example",
-			"url": "examples/angular-dart"
+			"url": "examples/angular-dart/web"
 		}],
 		"link_groups": [{
 			"heading": "Official Resources",
@@ -754,7 +754,7 @@
 		"homepage": "durandaljs.com",
 		"examples": [{
 			"name": "Example",
-			"url": "examples/durandal/index.html"
+			"url": "examples/durandal"
 		}],
 		"link_groups": [{
 			"heading": "Official Resources",
@@ -1205,6 +1205,16 @@
 				"url": "https://plus.google.com/102828491884671003608/posts"
 			}]
 		}]
+	},
+	"jin2_view": {
+		"name": "$jin2_view",
+		"description": "Component system based on jin2_atom",
+		"homepage": "https://github.com/nin-jin/pms-jin2/tree/master/view",
+		"examples": [{
+			"name": "Example",
+			"url": "examples/jin2_view"
+		}],
+		"link_groups": []
 	},
 	"kendo": {
 		"name": "Kendo UI",

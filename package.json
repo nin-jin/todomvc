@@ -11,6 +11,9 @@
     "index.html",
     "learn.json"
   ],
+  "scripts": {
+      "gulp" : "gulp"
+  },
   "dependencies": {
     "express": "^4.10.0"
   },
