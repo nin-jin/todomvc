@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>Angular Light • TodoMVC</title>
+		<link rel="stylesheet" href="bower_components/todomvc-common/base.css">
+		<style>[al-cloak] { display: none; }</style>
+	</head>
+	<body>
+		<section id="todoapp" al-app="TodoApp">
+			<header id="header">
+				<h1>todos</h1>
+				<form id="todo-form" al-submit="addTodo()">
+					<input id="new-todo" placeholder="What needs to be done?" al-value="newTodo" autofocus>
+				</form>
+			</header>
+			<section id="main" al-show="todos.length" al-cloak>
+				<input id="toggle-all" type="checkbox" al-checked="allChecked" al-change="markAll(allChecked)">
+				<label for="toggle-all">Mark all as complete</label>
+				<ul id="todo-list">
+					<li al-repeat="todo in filteredList()" al-class="completed: todo.completed, editing: todo == editedTodo">
+						<div class="view">
+							<input class="toggle" type="checkbox" al-checked="todo.completed" al-change="markTodo(todo)">
+							<label al-dblclick="editTodo(todo)">{{todo.title}}</label>
+							<button class="destroy" al-click="removeTodo(todo)"></button>
+						</div>
+						<form al-if="todo == editedTodo" al-submit="doneEditing(todo)">
+							<input class="edit" al-value="todo.title" al-blur="doneEditing(todo)" al-escape="revertEditing(todo)" al-focused="todo == editedTodo">
+						</form>
+					</li>
+				</ul>
+			</section>
+			<footer id="footer" al-show="todos.length">
+				<span id="todo-count"><strong>{{remainingCount}}</strong> item left</span>
+				<ul id="filters">
+					<li>
+						<a al-class="selected: path == ''" al-click="path=''" href="#">All</a>
+					</li>
+					<li>
+						<a al-class="selected: path == 'active'" al-click="path='active'" href="#active">Active</a>
+					</li>
+					<li>
+						<a al-class="selected: path == 'completed'" al-click="path='completed'" href="#completed">Completed</a>
+					</li>
+				</ul>
+				<button id="clear-completed" al-click="clearCompletedTodos()" al-show="remainingCount < todos.length">Clear completed ({{todos.length - remainingCount}})</button>
+			</footer>
+		</section>
+		<footer id="info">
+			<p>Double-click to edit a todo</p>
+			<p>Part of <a href="http://todomvc.com">TodoMVC</a></p>
+		</footer>
+		<script src="bower_components/alight/alight.js"></script>
+		<script src="js/directives.js"></script>
+		<script src="js/app.js"></script>
+	</body>
+</html>
