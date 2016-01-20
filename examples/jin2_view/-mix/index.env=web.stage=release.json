@@ -23,8 +23,7 @@
 							]
 						},
 						"": [
-							"jin2/jin2.meta.tree",
-							"jin2/index.html"
+							"jin2/jin2.meta.tree"
 						]
 					},
 					"jin2/error": {
@@ -43,6 +42,12 @@
 						"jin2/prop/prop.ts"
 					]
 				},
+				"jin2/grab": {
+					":priority": 1,
+					"": [
+						"jin2/grab/grab.ts"
+					]
+				},
 				"jin2/atom": {
 					":priority": 2,
 					"jin2/state/stack": {
@@ -56,13 +61,7 @@
 					]
 				},
 				"jin2/state/local": {
-					":priority": 3,
-					"jin2/grab": {
-						":priority": 1,
-						"": [
-							"jin2/grab/grab.ts"
-						]
-					},
+					":priority": 4,
 					"": [
 						"jin2/state/local/local.env=web.ts"
 					]
@@ -71,11 +70,24 @@
 					"jin2/demo/todomvc/task/task.ts"
 				]
 			},
-			"jin2/view": {
+			"mol/block": {
 				":priority": 0,
+				"mol": {
+					":priority": 0,
+					"": [
+						"mol/mol.meta.tree",
+						"mol/index.html"
+					]
+				},
+				"jin2/vary": {
+					":priority": 2,
+					"": [
+						"jin2/vary/vary.ts"
+					]
+				},
 				"": [
-					"jin2/view/view.css",
-					"jin2/view/view.ts"
+					"mol/block/block.css",
+					"mol/block/block.ts"
 				]
 			},
 			"jin2/state/arg": {

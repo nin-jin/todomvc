@@ -1,28 +1,28 @@
-[jin2_view_error="fail"] {
-	background-image: -webkit-repeating-linear-gradient(45deg, rgba(255,0,0,.1), rgba(255,0,0,.1) 11px, rgba(255,255,255,.1) 10px, rgba(255,255,255,.1) 20px);
+[mol_error="fail"] {
+	background-image: -webkit-repeating-linear-gradient(45deg, rgba(255,220,220,1), rgba(255,220,220,1) 11px, rgba(255,255,220,1) 10px, rgba(255,255,220,1) 20px) !important;
 	background-image: repeating-linear-gradient(
 		45deg,
-		rgba(255,0,0,.1),
-		rgba(255,0,0,.1) 11px,
-		rgba(255,255,255,.1) 10px,
-		rgba(255,255,255,.1) 20px
-	);
-	background-size: 28px 28px;
+		rgba(255,220,220,1),
+		rgba(255,220,220,1) 11px,
+		rgba(255,255,220,1) 10px,
+		rgba(255,255,220,1) 20px
+	) !important;
+	background-size: 28px 28px !important;
 }
 
-@-webkit-keyframes jin2_view_show {
+@-webkit-keyframes mol_show {
 	from {
 		opacity: 0;
 	}
 }
 
-@keyframes jin2_view_show {
+@keyframes mol_show {
 	from {
 		opacity: 0;
 	}
 }
 
-@-webkit-keyframes jin2_view_error_move {
+@-webkit-keyframes mol_error_move {
   0% {
     background-position: 0 0;
   }
@@ -31,7 +31,7 @@
   }
 }
 
-@keyframes jin2_view_error_move {
+@keyframes mol_error_move {
   0% {
     background-position: 0 0;
   }
@@ -40,23 +40,23 @@
   }
 }
 
-[jin2_view] {
-	-webkit-animation: jin2_geo_map_show .25s ease-in;
-	        animation: jin2_geo_map_show .25s ease-in;
+[mol] {
+	-webkit-animation: jin2_show .25s ease-in;
+	        animation: jin2_show .25s ease-in;
 }
 
-[jin2_view_error="wait"] {
-	background-image: -webkit-repeating-linear-gradient(45deg, rgba(0,0,255,.02), rgba(0,0,255,.02) 11px, rgba(255,255,255,.02) 10px, rgba(255,255,255,.02) 20px);
+[mol_error="wait"] {
+	background-image: -webkit-repeating-linear-gradient(45deg, rgba(0,0,255,.05), rgba(0,0,255,.05) 11px, rgba(255,255,255,.02) 10px, rgba(255,255,255,.02) 20px) !important;
 	background-image: repeating-linear-gradient(
 		45deg,
-		rgba(0,0,255,.02),
-		rgba(0,0,255,.02) 11px,
+		rgba(0,0,255,.05),
+		rgba(0,0,255,.05) 11px,
 		rgba(255,255,255,.02) 10px,
 		rgba(255,255,255,.02) 20px
-	);
-	background-size: 28px 28px;
-	-webkit-animation: jin2_view_error_move .25s linear infinite;
-	        animation: jin2_view_error_move .25s linear infinite;
+	) !important;
+	background-size: 28px 28px !important;
+	-webkit-animation: mol_show 1s linear , mol_error_move .25s linear infinite !important;
+	        animation: mol_show 1s linear , mol_error_move .25s linear infinite !important;
 }
 
 body {
@@ -165,7 +165,6 @@ body {
 	top: -5px;
 	left: 5px;
 	-webkit-transform: rotate(90deg);
-	    -ms-transform: rotate(90deg);
 	        transform: rotate(90deg);
 	-webkit-appearance: none;
 	   -moz-appearance: none;
@@ -293,7 +292,6 @@ body {
 	text-shadow: 0 0 1px #000,
 				 0 0 10px rgba(199, 107, 107, 0.8);
 	-webkit-transform: scale(1.3);
-	-ms-transform: scale(1.3);
 	transform: scale(1.3);
 }
 

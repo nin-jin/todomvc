@@ -200,6 +200,38 @@ var $jin2_prop = (function (_super) {
 })($jin2_object);
 //# sourceMappingURL=prop.js.map
 ;
+function $jin2_grab(prototype, name, descr) {
+    var prefix = name + '_';
+    var getValue = function (id) {
+        if (id === void 0) { id = ''; }
+        var field = prefix + id;
+        if (this[field])
+            return this[field];
+        var obj = makeValue.call(this, id);
+        obj.objectName = name;
+        obj.objectId = id;
+        obj.objectOwner = this;
+        return obj;
+    };
+    if (descr.get) {
+        var makeValue = descr.get;
+        descr.get = getValue;
+        descr.set = function (next) {
+            if (typeof next === 'function') {
+                makeValue = next;
+            }
+            else {
+                this[prefix] = next;
+            }
+        };
+    }
+    else {
+        var makeValue = descr.value;
+        descr.value = getValue;
+    }
+}
+//# sourceMappingURL=grab.js.map
+;
 var $jin2_state_stack = {};
 //# sourceMappingURL=stack.js.map
 ;
@@ -214,7 +246,7 @@ var $jin2_atom = (function (_super) {
     __extends($jin2_atom, _super);
     function $jin2_atom(pull, put) {
         _super.call(this);
-        this.value_ = void 0;
+        this._ = void 0;
         this.error = $jin2_atom.obsolete;
         this.masters = null;
         this.mastersDeep = 0;
@@ -224,6 +256,10 @@ var $jin2_atom = (function (_super) {
         if (put)
             this.put_ = put;
     }
+    $jin2_atom.prototype.wrap = function (get, set) {
+        var _this = this;
+        return new $jin2_prop(get ? (function () { return get(_this.get()); }) : function () { return _this.get(); }, set ? function (next, prev) { return _this.set(set(next)); } : function (next, prev) { return _this.set(next, prev); });
+    };
     $jin2_atom.prototype.pull_ = function (prev) { throw $jin2_atom.wait; };
     $jin2_atom.prototype.norm_ = function (next, prev) { return next; };
     $jin2_atom.prototype.put_ = function (next, prev) { return next; };
@@ -258,7 +294,7 @@ var $jin2_atom = (function (_super) {
             this.pull();
         if (this.error)
             throw this.error;
-        return this.value_;
+        return this._;
     };
     $jin2_atom.prototype.pull = function () {
         var _this = this;
@@ -271,7 +307,7 @@ var $jin2_atom = (function (_super) {
         this.error = $jin2_atom.wait;
         var index = $jin2_atom.stack.length;
         $jin2_atom.stack.push(this);
-        var next = this.pull_(this.value_);
+        var next = this.pull_(this._);
         $jin2_atom.stack.length = index;
         if (next !== void 0)
             this.push(next);
@@ -286,20 +322,20 @@ var $jin2_atom = (function (_super) {
             if (!masters.size)
                 this.masters = null;
         }
-        return this.value_;
+        return this._;
     };
     $jin2_atom.prototype.push = function (next) {
-        var prev = this.value_;
+        var prev = this._;
         next = this.norm_(next, prev);
         this.error = null;
         if (next !== prev) {
-            this.value_ = next;
+            this._ = next;
             this.notify(prev);
         }
         return next;
     };
     $jin2_atom.prototype.set = function (next, prev) {
-        var value = this.value_;
+        var value = this._;
         next = this.norm_(next, value);
         if (prev !== void 0)
             prev = this.norm_(prev, value);
@@ -309,11 +345,11 @@ var $jin2_atom = (function (_super) {
                 this.push(next);
             }
         }
-        return this.value_;
+        return this._;
     };
     $jin2_atom.prototype.clear = function () {
-        var prev = this.value_;
-        this.value_ = void 0;
+        var prev = this._;
+        this._ = void 0;
         this.error = $jin2_atom.obsolete;
         this.notify(prev);
         return void 0;
@@ -325,9 +361,11 @@ var $jin2_atom = (function (_super) {
     };
     $jin2_atom.prototype.notify = function (prev) {
         this.notifySlaves();
-        this.notify_(this.value_, prev);
+        this.notify_(this._, prev);
     };
     $jin2_atom.prototype.fail = function (error) {
+        if (this.error === error)
+            return;
         this.error = error;
         this.notifySlaves();
         var value = this.fail_(error);
@@ -388,7 +426,7 @@ var $jin2_atom = (function (_super) {
         this.mastersDeep = 0;
     };
     $jin2_atom.prototype.mutate = function (mutate) {
-        var next = mutate.call(this.objectOwner, this.value_);
+        var next = mutate.call(this.objectOwner, this._);
         return this.set(next);
     };
     $jin2_atom.prototype.on = function (notify, fail) {
@@ -519,11 +557,12 @@ var $jin2_atom_own = (function (_super) {
         _super.apply(this, arguments);
     }
     $jin2_atom_own.prototype.push = function (next) {
-        var prev = this.value_;
+        var prev = this._;
         next = this.norm_(next, prev);
         this.error = null;
         if (next !== prev) {
-            next.objectName = 'value';
+            next.objectName = '';
+            next.objectId = '';
             next.objectOwner = this;
             this.notify(prev);
         }
@@ -551,45 +590,19 @@ var $jin2_atom_list = (function (_super) {
     return $jin2_atom_list;
 })($jin2_atom);
 window.addEventListener('error', function (event) {
-    for (var _i = 0, _a = $jin2_atom.stack; _i < _a.length; _i++) {
-        var atom = _a[_i];
+    var stack = $jin2_atom.stack;
+    $jin2_atom.stack = [];
+    for (var _i = 0; _i < stack.length; _i++) {
+        var atom = stack[_i];
+        console.debug(atom.objectPath);
+    }
+    for (var _a = 0; _a < stack.length; _a++) {
+        var atom = stack[_a];
         atom.fail(event['error']);
     }
-    $jin2_atom.stack = [];
+    $jin2_atom.induce();
 });
 //# sourceMappingURL=atom.js.map
-;
-function $jin2_grab(prototype, name, descr) {
-    var prefix = name + '_';
-    var getValue = function (id) {
-        if (id === void 0) { id = ''; }
-        var field = prefix + id;
-        if (this[field])
-            return this[field];
-        var obj = makeValue.call(this, id);
-        obj.objectName = name;
-        obj.objectId = id;
-        obj.objectOwner = this;
-        return obj;
-    };
-    if (descr.get) {
-        var makeValue = descr.get;
-        descr.get = getValue;
-        descr.set = function (next) {
-            if (typeof next === 'function') {
-                makeValue = next;
-            }
-            else {
-                this[prefix] = next;
-            }
-        };
-    }
-    else {
-        var makeValue = descr.value;
-        descr.value = getValue;
-    }
-}
-//# sourceMappingURL=grab.js.map
 ;
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -601,24 +614,15 @@ var $jin2_state_local = (function () {
     function $jin2_state_local() {
     }
     $jin2_state_local.item = function (key) {
-        var item = new $jin2_atom(function () { return localStorage.getItem(key) || null; }, function (next) {
-            if (next == null) {
-                return null;
-            }
-            else {
-                var value = String(next);
-                return value;
-            }
-        });
-        item.on(function (next) {
+        return new $jin2_atom(function () { return localStorage.getItem(key) || null; }, function (next) {
             if (next == null) {
                 localStorage.removeItem(key);
             }
             else {
-                localStorage.setItem(key, next);
+                var value = String(next);
+                localStorage.setItem(key, value);
             }
         });
-        return item;
     };
     __decorate([
         $jin2_grab
@@ -646,25 +650,32 @@ var $jin2_demo_todomvc_task = (function (_super) {
     }
     $jin2_demo_todomvc_task.prototype.id = function () {
         var _this = this;
-        return new $jin2_prop(function () { return _this.objectId; });
+        return new $jin2_prop(function () { return _this.objectOwner.objectId; });
+    };
+    $jin2_demo_todomvc_task.prototype.data = function () {
+        var _this = this;
+        return new $jin2_atom(function () {
+            var val = $jin2_state_local.item(_this.objectPath).get();
+            return val ? JSON.parse(val) : { title: '', completed: false };
+        }, function (next) {
+            var prev = _this.data().get();
+            if (next && prev)
+                for (var key in prev)
+                    if (!(key in next))
+                        next[key] = prev[key];
+            $jin2_state_local.item(_this.objectPath).set(JSON.stringify(next));
+            return next;
+        });
     };
     $jin2_demo_todomvc_task.prototype.title = function () {
-        var _this = this;
-        return new $jin2_atom(function () { return $jin2_state_local.item(_this.objectPath + '.title').get() || ''; }, function (next) {
-            $jin2_state_local.item(_this.objectPath + '.title').set(next);
-            return next;
-        });
+        return this.data().wrap(function (val) { return val.title || ''; }, function (next) { return ({ title: next }); });
     };
     $jin2_demo_todomvc_task.prototype.completed = function () {
-        var _this = this;
-        return new $jin2_atom(function () { return $jin2_state_local.item(_this.objectPath + '.completed').get() == 'true'; }, function (next) {
-            $jin2_state_local.item(_this.objectPath + '.completed').set(next);
-            return next;
-        });
+        return this.data().wrap(function (val) { return !!val.completed; }, function (next) { return ({ completed: next }); });
     };
     __decorate([
         $jin2_grab
-    ], $jin2_demo_todomvc_task.prototype, "completed", null);
+    ], $jin2_demo_todomvc_task.prototype, "data", null);
     return $jin2_demo_todomvc_task;
 })($jin2_object);
 //# sourceMappingURL=task.js.map
@@ -674,158 +685,296 @@ var __extends = (this && this.__extends) || function (d, b) {
     function __() { this.constructor = d; }
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
-var $jin2_view_div = (function (_super) {
-    __extends($jin2_view_div, _super);
-    function $jin2_view_div() {
+var $jin2_vary = (function (_super) {
+    __extends($jin2_vary, _super);
+    function $jin2_vary(pull, put) {
+        _super.call(this);
+        if (pull)
+            this.pull_ = pull;
+        if (put)
+            this.put_ = put;
+    }
+    Object.defineProperty($jin2_vary.prototype, "objectOwner", {
+        get: function () {
+            return this._objectOwner;
+        },
+        set: function (next) {
+            this._objectOwner = next;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty($jin2_vary.prototype, "value", {
+        get: function () {
+            return this.objectOwner['_' + this.objectName + '_' + this.objectId];
+        },
+        set: function (next) {
+            this.objectOwner['_' + this.objectName + '_' + this.objectId] = next;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    $jin2_vary.prototype.get_ = function (value) { return value; };
+    $jin2_vary.prototype.pull_ = function (prev) { return prev; };
+    $jin2_vary.prototype.norm_ = function (next, prev) { return next; };
+    $jin2_vary.prototype.put_ = function (next, prev) { return next; };
+    $jin2_vary.prototype.notify_ = function (next, prev) { };
+    $jin2_vary.prototype.get = function () {
+        var value = this.value;
+        if (value === undefined)
+            value = this.pull();
+        return this.get_(value);
+    };
+    $jin2_vary.prototype.pull = function () {
+        var value = this.pull_(this.value);
+        return this.push(value);
+    };
+    $jin2_vary.prototype.push = function (next) {
+        var prev = this.value;
+        next = this.norm_(next, prev);
+        if (next !== prev) {
+            this.value = next;
+            this.notify(prev);
+        }
+        return next;
+    };
+    $jin2_vary.prototype.clear = function () {
+        var prev = this.value;
+        this.value = void 0;
+        this.notify(prev);
+        return void 0;
+    };
+    $jin2_vary.prototype.set = function (next, prev) {
+        var value = this.value;
+        next = this.norm_(next, value);
+        if (prev !== undefined)
+            prev = this.norm_(prev, value);
+        if (next !== value) {
+            next = this.put_(next, prev);
+            if (next !== void 0)
+                this.value = next;
+        }
+        return next;
+    };
+    $jin2_vary.prototype.mutate = function (mutate) {
+        var next = mutate.call(this.objectOwner, this.value);
+        return this.set(next);
+    };
+    $jin2_vary.prototype.notify = function (prev) {
+        this.notify_(this.value, prev);
+    };
+    return $jin2_vary;
+})($jin2_object);
+var $jin2_vary_own = (function (_super) {
+    __extends($jin2_vary_own, _super);
+    function $jin2_vary_own() {
+        _super.apply(this, arguments);
+    }
+    $jin2_vary_own.prototype.push = function (next) {
+        var prev = this.value;
+        next = this.norm_(next, prev);
+        if (next !== prev) {
+            next.objectName = '_' + this.objectName;
+            next.objectId = this.objectId;
+            next.objectOwner = this.objectOwner;
+            this.notify(prev);
+        }
+        return next;
+    };
+    return $jin2_vary_own;
+})($jin2_vary);
+//# sourceMappingURL=vary.js.map
+;
+var __extends = (this && this.__extends) || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+};
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var $mol_block = (function (_super) {
+    __extends($mol_block, _super);
+    function $mol_block() {
         _super.call(this);
     }
-    $jin2_view_div.prototype.tagName = function () {
+    $mol_block.app = function (id) {
+        var _this = this;
+        return new $jin2_atom_own(function () { return new _this(); });
+    };
+    $mol_block.prototype.tagName = function () {
         return { get: function () { return 'div'; } };
     };
-    $jin2_view_div.prototype.nameSpace = function () {
+    $mol_block.prototype.nameSpace = function () {
         return { get: function () { return 'http://www.w3.org/1999/xhtml'; } };
     };
-    $jin2_view_div.prototype.child = function () {
+    $mol_block.prototype.child = function () {
         return { get: function () { return null; } };
     };
-    $jin2_view_div.prototype.attr = function () {
+    $mol_block.prototype.attr = function () {
         return {};
     };
-    $jin2_view_div.prototype.field = function () {
+    $mol_block.prototype.field = function () {
         return {};
     };
-    $jin2_view_div.prototype.event = function () {
+    $mol_block.prototype.event = function () {
         return {};
     };
-    $jin2_view_div.prototype.node = function () {
+    $mol_block.prototype.node = function () {
         var _this = this;
-        return { get: function () {
-                var id = _this.objectPath;
-                var prev = document.getElementById(id);
-                if (!prev) {
-                    prev = document.createElementNS(_this.nameSpace().get(), _this.tagName().get());
-                    prev.setAttribute('id', id);
-                }
-                var router = (document.body === prev) ? document : prev;
-                var events = _this.event();
-                for (var name in events)
-                    (function (name) {
-                        var prop = events[name];
-                        router.addEventListener(name, function (event) {
-                            prop.set(event);
-                            $jin2_atom.induce();
-                        }, false);
-                    })(name);
-                var proto1 = _this.objectOwner;
-                while (proto1 && (proto1 !== $jin2_view_div.prototype)) {
-                    var className = $jin2_object_path(proto1.constructor);
-                    if (!className)
-                        continue;
-                    prev.setAttribute(className.replace(/\$/g, '') + '_' + _this.objectName, '');
-                    proto1 = Object.getPrototypeOf(proto1);
-                }
-                var proto2 = _this;
-                while (proto2 && (proto2 !== $jin2_view_div.prototype)) {
-                    var className = $jin2_object_path(proto2.constructor);
-                    if (!className)
-                        continue;
-                    prev.setAttribute(className.replace(/\$/g, ''), "");
-                    proto2 = Object.getPrototypeOf(proto2);
-                }
-                return prev;
-            } };
-    };
-    $jin2_view_div.prototype.pull_ = function (prev) {
-        if (!prev)
-            prev = this.node().get();
-        var attrs = this.attr();
-        for (var name in attrs) {
-            var p = prev.getAttribute(name);
-            var n = String(attrs[name].get());
-            if (p !== n) {
-                prev.setAttribute(name, n);
+        return new $jin2_vary(function () {
+            var id = _this.objectPath;
+            var prev = document.getElementById(id);
+            if (!prev) {
+                prev = document.createElementNS(_this.nameSpace().get(), _this.tagName().get());
+                prev.setAttribute('id', id);
             }
-        }
-        var childs = this.child().get();
-        if (childs != null) {
-            var childViews = [].concat.apply([], [].concat(childs));
-            var childNodes = prev.childNodes;
-            var nextNode = prev.firstChild;
-            for (var i = 0; i < childViews.length; ++i) {
-                var view = childViews[i];
-                if (typeof view === 'object') {
-                    if (view) {
-                        var existsNode = view;
-                        while (true) {
-                            if (!nextNode) {
-                                prev.appendChild(existsNode);
-                                break;
-                            }
-                            if (nextNode == existsNode) {
-                                nextNode = nextNode.nextSibling;
-                                break;
-                            }
-                            else {
-                                if (childViews.indexOf(nextNode) === -1) {
-                                    var nn = nextNode.nextSibling;
-                                    prev.removeChild(nextNode);
-                                    nextNode = nn;
+            var router = prev;
+            var events = _this.event();
+            for (var name in events)
+                (function (name) {
+                    var prop = events[name];
+                    router.addEventListener(name, function (event) {
+                        prop.set(event);
+                        requestAnimationFrame($jin2_atom.induce.bind($jin2_atom));
+                    }, false);
+                })(name);
+            var proto1 = _this.objectOwner.objectOwner;
+            while (proto1 && (proto1.constructor !== $mol_block) && (proto1.constructor !== Function)) {
+                var className = $jin2_object_path(proto1.constructor);
+                if (!className)
+                    continue;
+                prev.setAttribute(className.replace(/\$/g, '') + '_' + _this.objectOwner.objectName, '');
+                proto1 = Object.getPrototypeOf(proto1);
+            }
+            var proto2 = _this;
+            while (proto2 && (proto2.constructor !== $mol_block)) {
+                var className = $jin2_object_path(proto2.constructor);
+                if (!className)
+                    continue;
+                prev.setAttribute(className.replace(/\$/g, ''), "");
+                proto2 = Object.getPrototypeOf(proto2);
+            }
+            var onAttach = function (event) {
+                prev.removeEventListener('DOMNodeInserted', onAttach);
+                _this.version().pull();
+            };
+            if (prev.parentNode) {
+                setTimeout(onAttach);
+            }
+            else {
+                prev.addEventListener('DOMNodeInserted', onAttach);
+            }
+            return prev;
+        });
+    };
+    $mol_block.prototype.version = function () {
+        var _this = this;
+        var prop = new $jin2_atom(function () {
+            var prev = _this.node().get();
+            var attrs = _this.attr();
+            for (var name in attrs) {
+                var p = prev.getAttribute(name);
+                var n = String(attrs[name].get());
+                if (p !== n) {
+                    prev.setAttribute(name, n);
+                }
+            }
+            var childs = _this.child().get();
+            if (childs != null) {
+                var childViews = [].concat.apply([], [].concat(childs));
+                var childNodes = prev.childNodes;
+                var nextNode = prev.firstChild;
+                for (var i = 0; i < childViews.length; ++i) {
+                    var view = childViews[i];
+                    if (typeof view === 'object') {
+                        if (view) {
+                            var existsNode = view.node().get();
+                            while (true) {
+                                if (!nextNode) {
+                                    prev.appendChild(existsNode);
+                                    break;
+                                }
+                                if (nextNode == existsNode) {
+                                    nextNode = nextNode.nextSibling;
+                                    break;
                                 }
                                 else {
-                                    prev.insertBefore(existsNode, nextNode);
-                                    break;
+                                    if (childViews.indexOf(nextNode) === -1) {
+                                        var nn = nextNode.nextSibling;
+                                        prev.removeChild(nextNode);
+                                        nextNode = nn;
+                                    }
+                                    else {
+                                        prev.insertBefore(existsNode, nextNode);
+                                        break;
+                                    }
                                 }
                             }
                         }
                     }
-                }
-                else {
-                    if (nextNode && nextNode.nodeName === '#text') {
-                        nextNode.nodeValue = String(view);
-                        nextNode = nextNode.nextSibling;
-                    }
                     else {
-                        var textNode = document.createTextNode(String(view));
-                        prev.insertBefore(textNode, nextNode);
+                        if (nextNode && nextNode.nodeName === '#text') {
+                            nextNode.nodeValue = String(view);
+                            nextNode = nextNode.nextSibling;
+                        }
+                        else {
+                            var textNode = document.createTextNode(String(view));
+                            prev.insertBefore(textNode, nextNode);
+                        }
                     }
                 }
+                while (nextNode) {
+                    var currNode = nextNode;
+                    nextNode = currNode.nextSibling;
+                    prev.removeChild(currNode);
+                }
             }
-            while (nextNode) {
-                var currNode = nextNode;
-                nextNode = currNode.nextSibling;
-                prev.removeChild(currNode);
+            var fields = _this.field();
+            for (var path in fields) {
+                var names = path.split('.');
+                var obj = prev;
+                for (var i = 0; i < names.length - 1; ++i) {
+                    if (names[i])
+                        obj = obj[names[i]];
+                }
+                obj[names[names.length - 1]] = fields[path].get();
             }
-        }
-        var fields = this.field();
-        for (var path in fields) {
-            var names = path.split('.');
-            var obj = prev;
-            for (var i = 0; i < names.length - 1; ++i) {
-                if (names[i])
-                    obj = obj[names[i]];
+            prev.removeAttribute('mol_error');
+            return prev;
+        });
+        prop.fail_ = function (error) {
+            var node = _this.node().get();
+            if (error === $jin2_atom.wait) {
+                node.setAttribute('mol_error', 'wait');
             }
-            obj[names[names.length - 1]] = fields[path].get();
-        }
-        prev.removeAttribute('jin2_view_error');
-        return prev;
+            else {
+                node.setAttribute('mol_error', 'fail');
+            }
+            return node;
+        };
+        return prop;
     };
-    $jin2_view_div.prototype.fail_ = function (error) {
-        var node = this.node().get();
-        if (error === $jin2_atom.wait) {
-            node.setAttribute('jin2_view_error', 'wait');
-        }
-        else {
-            node.setAttribute('jin2_view_error', 'fail');
-        }
-        return node;
-    };
-    return $jin2_view_div;
-})($jin2_atom);
-function $jin2_view_replace(Class) {
-    $jin2_view[Class.name] = Class;
+    __decorate([
+        $jin2_grab
+    ], $mol_block.prototype, "node", null);
+    __decorate([
+        $jin2_grab
+    ], $mol_block.prototype, "version", null);
+    __decorate([
+        $jin2_grab
+    ], $mol_block, "app", null);
+    return $mol_block;
+})($jin2_object);
+function $mol_replace(Class) {
+    $mol[Class.name] = Class;
+    window[Class.name] = Class;
     return Class;
 }
-//# sourceMappingURL=view.js.map
+//# sourceMappingURL=block.js.map
 ;
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -913,78 +1062,94 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-var $jin2_view;
-(function ($jin2_view) {
+var $mol;
+(function ($mol) {
     var $jin2_demo_todomvc = (function (_super) {
         __extends($jin2_demo_todomvc, _super);
         function $jin2_demo_todomvc() {
             _super.apply(this, arguments);
         }
-        $jin2_demo_todomvc.prototype.title = function () { return { get: function () { return ["todos"]; }, set: function (next) { return null; } }; };
+        $jin2_demo_todomvc.prototype.title = function () { return new $jin2_prop(function () { return ["todos"]; }); };
         $jin2_demo_todomvc.prototype.titler = function () {
             var _this = this;
-            var view = new $jin2_view_div;
-            view.child = function () { return _this.title(); };
-            return view;
+            return new $jin2_atom_own(function () {
+                var view = new $mol_block;
+                view.child = function () { return _this.title(); };
+                return view;
+            });
         };
-        $jin2_demo_todomvc.prototype.taskNewTitle = function () { return { get: function () { return (""); }, set: function (next) { return null; } }; };
+        $jin2_demo_todomvc.prototype.taskNewTitle = function () { return new $jin2_prop(function () { return (""); }); };
         $jin2_demo_todomvc.prototype.adder = function () {
             var _this = this;
-            var view = new $jin2_view.$jin2_demo_todomvc_adder;
-            view.text = function () { return _this.taskNewTitle(); };
-            return view;
+            return new $jin2_atom_own(function () {
+                var view = new $mol.$jin2_demo_todomvc_adder;
+                view.text = function () { return _this.taskNewTitle(); };
+                return view;
+            });
         };
-        $jin2_demo_todomvc.prototype.allCompleted = function () { return { get: function () { return (false); }, set: function (next) { return null; } }; };
+        $jin2_demo_todomvc.prototype.allCompleted = function () { return new $jin2_prop(function () { return (false); }); };
         $jin2_demo_todomvc.prototype.allCompleter = function () {
             var _this = this;
-            var view = new $jin2_view.$jin2_demo_todomvc_completer;
-            view.completed = function () { return _this.allCompleted(); };
-            return view;
+            return new $jin2_atom_own(function () {
+                var view = new $mol.$jin2_demo_todomvc_completer;
+                view.completed = function () { return _this.allCompleted(); };
+                return view;
+            });
         };
         $jin2_demo_todomvc.prototype.headerContent = function () {
             var _this = this;
-            return { get: function () { return [_this.titler().get(), _this.adder().get(), _this.allCompleter().get()]; }, set: function (next) { return null; } };
+            return new $jin2_prop(function () { return [_this.titler().get(), "", _this.adder().get(), "", _this.allCompleter().get(), ""]; });
         };
         $jin2_demo_todomvc.prototype.header = function () {
             var _this = this;
-            var view = new $jin2_view_div;
-            view.child = function () { return _this.headerContent(); };
-            return view;
+            return new $jin2_atom_own(function () {
+                var view = new $mol_block;
+                view.child = function () { return _this.headerContent(); };
+                return view;
+            });
         };
-        $jin2_demo_todomvc.prototype.taskRows = function () { return { get: function () { return (null); }, set: function (next) { return null; } }; };
+        $jin2_demo_todomvc.prototype.taskRows = function () { return new $jin2_prop(function () { return (null); }); };
         $jin2_demo_todomvc.prototype.body = function () {
             var _this = this;
-            var view = new $jin2_view_div;
-            view.child = function () { return _this.taskRows(); };
-            return view;
+            return new $jin2_atom_own(function () {
+                var view = new $mol_block;
+                view.child = function () { return _this.taskRows(); };
+                return view;
+            });
         };
-        $jin2_demo_todomvc.prototype.pendingCount = function () { return { get: function () { return (0); }, set: function (next) { return null; } }; };
+        $jin2_demo_todomvc.prototype.pendingCount = function () { return new $jin2_prop(function () { return (0); }); };
         $jin2_demo_todomvc.prototype.pendingCounter = function () {
             var _this = this;
-            var view = new $jin2_view_div;
-            view.child = function () { return _this.pendingCount(); };
-            return view;
+            return new $jin2_atom_own(function () {
+                var view = new $mol_block;
+                view.child = function () { return _this.pendingCount(); };
+                return view;
+            });
         };
-        $jin2_demo_todomvc.prototype.pendingTail = function () { return { get: function () { return ("123"); }, set: function (next) { return null; } }; };
+        $jin2_demo_todomvc.prototype.pendingTail = function () { return new $jin2_prop(function () { return ("123"); }); };
         $jin2_demo_todomvc.prototype.pendingMessage = function () {
             var _this = this;
-            return { get: function () { return [_this.pendingCounter().get(), _this.pendingTail().get()]; }, set: function (next) { return null; } };
+            return new $jin2_prop(function () { return [_this.pendingCounter().get(), "", _this.pendingTail().get(), ""]; });
         };
         $jin2_demo_todomvc.prototype.pendinger = function () {
             var _this = this;
-            var view = new $jin2_view_div;
-            view.child = function () { return _this.pendingMessage(); };
-            return view;
+            return new $jin2_atom_own(function () {
+                var view = new $mol_block;
+                view.child = function () { return _this.pendingMessage(); };
+                return view;
+            });
         };
         $jin2_demo_todomvc.prototype.footer = function () {
             var _this = this;
-            var view = new $jin2_view_div;
-            view.child = function () { return _this.pendinger(); };
-            return view;
+            return new $jin2_atom_own(function () {
+                var view = new $mol_block;
+                view.child = function () { return _this.pendinger(); };
+                return view;
+            });
         };
         $jin2_demo_todomvc.prototype.child = function () {
             var _this = this;
-            return { get: function () { return [_this.header().get(), _this.body().get(), _this.footer().get()]; }, set: function (next) { return null; } };
+            return new $jin2_prop(function () { return [_this.header().get(), "", _this.body().get(), "", _this.footer().get(), ""]; });
         };
         __decorate([
             $jin2_grab
@@ -1010,22 +1175,25 @@ var $jin2_view;
         __decorate([
             $jin2_grab
         ], $jin2_demo_todomvc.prototype, "footer", null);
+        $jin2_demo_todomvc = __decorate([
+            $mol_replace
+        ], $jin2_demo_todomvc);
         return $jin2_demo_todomvc;
-    })($jin2_view_div);
-    $jin2_view.$jin2_demo_todomvc = $jin2_demo_todomvc;
-})($jin2_view || ($jin2_view = {}));
-var $jin2_view;
-(function ($jin2_view) {
+    })($mol_block);
+    $mol.$jin2_demo_todomvc = $jin2_demo_todomvc;
+})($mol || ($mol = {}));
+var $mol;
+(function ($mol) {
     var $jin2_demo_todomvc_adder = (function (_super) {
         __extends($jin2_demo_todomvc_adder, _super);
         function $jin2_demo_todomvc_adder() {
             _super.apply(this, arguments);
         }
-        $jin2_demo_todomvc_adder.prototype.placeHolder = function () { return { get: function () { return ("What needs to be done?"); }, set: function (next) { return null; } }; };
-        $jin2_demo_todomvc_adder.prototype.autoFocus = function () { return { get: function () { return (true); }, set: function (next) { return null; } }; };
-        $jin2_demo_todomvc_adder.prototype.text = function () { return { get: function () { return (""); }, set: function (next) { return null; } }; };
-        $jin2_demo_todomvc_adder.prototype.eventKeyPress = function () { return { get: function () { return (null); }, set: function (next) { return null; } }; };
-        $jin2_demo_todomvc_adder.prototype.tagName = function () { return { get: function () { return ("input"); }, set: function (next) { return null; } }; };
+        $jin2_demo_todomvc_adder.prototype.placeHolder = function () { return new $jin2_prop(function () { return ("What needs to be done?"); }); };
+        $jin2_demo_todomvc_adder.prototype.autoFocus = function () { return new $jin2_prop(function () { return (true); }); };
+        $jin2_demo_todomvc_adder.prototype.text = function () { return new $jin2_prop(function () { return (""); }); };
+        $jin2_demo_todomvc_adder.prototype.eventKeyPress = function () { return new $jin2_prop(function () { return (null); }); };
+        $jin2_demo_todomvc_adder.prototype.tagName = function () { return new $jin2_prop(function () { return ("input"); }); };
         $jin2_demo_todomvc_adder.prototype.field = function () {
             return {
                 "placeholder": this.placeHolder(),
@@ -1038,41 +1206,50 @@ var $jin2_view;
                 "keypress": this.eventKeyPress(),
             };
         };
+        $jin2_demo_todomvc_adder = __decorate([
+            $mol_replace
+        ], $jin2_demo_todomvc_adder);
         return $jin2_demo_todomvc_adder;
-    })($jin2_view_div);
-    $jin2_view.$jin2_demo_todomvc_adder = $jin2_demo_todomvc_adder;
-})($jin2_view || ($jin2_view = {}));
-var $jin2_view;
-(function ($jin2_view) {
+    })($mol_block);
+    $mol.$jin2_demo_todomvc_adder = $jin2_demo_todomvc_adder;
+})($mol || ($mol = {}));
+var $mol;
+(function ($mol) {
     var $jin2_demo_todomvc_task_view_row = (function (_super) {
         __extends($jin2_demo_todomvc_task_view_row, _super);
         function $jin2_demo_todomvc_task_view_row() {
             _super.apply(this, arguments);
         }
-        $jin2_demo_todomvc_task_view_row.prototype.taskCompleted = function () { return { get: function () { return (false); }, set: function (next) { return null; } }; };
+        $jin2_demo_todomvc_task_view_row.prototype.taskCompleted = function () { return new $jin2_prop(function () { return (false); }); };
         $jin2_demo_todomvc_task_view_row.prototype.completer = function () {
             var _this = this;
-            var view = new $jin2_view.$jin2_demo_todomvc_completer;
-            view.completed = function () { return _this.taskCompleted(); };
-            return view;
+            return new $jin2_atom_own(function () {
+                var view = new $mol.$jin2_demo_todomvc_completer;
+                view.completed = function () { return _this.taskCompleted(); };
+                return view;
+            });
         };
-        $jin2_demo_todomvc_task_view_row.prototype.taskTitle = function () { return { get: function () { return ("[taskTitle]"); }, set: function (next) { return null; } }; };
+        $jin2_demo_todomvc_task_view_row.prototype.taskTitle = function () { return new $jin2_prop(function () { return (""); }); };
         $jin2_demo_todomvc_task_view_row.prototype.title = function () {
             var _this = this;
-            var view = new $jin2_view_div;
-            view.child = function () { return _this.taskTitle(); };
-            return view;
+            return new $jin2_atom_own(function () {
+                var view = new $mol_block;
+                view.child = function () { return _this.taskTitle(); };
+                return view;
+            });
         };
-        $jin2_demo_todomvc_task_view_row.prototype.eventDrop = function () { return { get: function () { return (null); }, set: function (next) { return null; } }; };
+        $jin2_demo_todomvc_task_view_row.prototype.eventDrop = function () { return new $jin2_prop(function () { return (null); }); };
         $jin2_demo_todomvc_task_view_row.prototype.dropper = function () {
             var _this = this;
-            var view = new $jin2_view.$jin2_demo_todomvc_dropper;
-            view.eventClick = function () { return _this.eventDrop(); };
-            return view;
+            return new $jin2_atom_own(function () {
+                var view = new $mol.$jin2_demo_todomvc_dropper;
+                view.eventClick = function () { return _this.eventDrop(); };
+                return view;
+            });
         };
         $jin2_demo_todomvc_task_view_row.prototype.child = function () {
             var _this = this;
-            return { get: function () { return [_this.completer().get(), _this.title().get(), _this.dropper().get()]; }, set: function (next) { return null; } };
+            return new $jin2_prop(function () { return [_this.completer().get(), "", _this.title().get(), "", _this.dropper().get(), ""]; });
         };
         $jin2_demo_todomvc_task_view_row.prototype.attr = function () {
             return {
@@ -1088,21 +1265,24 @@ var $jin2_view;
         __decorate([
             $jin2_grab
         ], $jin2_demo_todomvc_task_view_row.prototype, "dropper", null);
+        $jin2_demo_todomvc_task_view_row = __decorate([
+            $mol_replace
+        ], $jin2_demo_todomvc_task_view_row);
         return $jin2_demo_todomvc_task_view_row;
-    })($jin2_view_div);
-    $jin2_view.$jin2_demo_todomvc_task_view_row = $jin2_demo_todomvc_task_view_row;
-})($jin2_view || ($jin2_view = {}));
-var $jin2_view;
-(function ($jin2_view) {
+    })($mol_block);
+    $mol.$jin2_demo_todomvc_task_view_row = $jin2_demo_todomvc_task_view_row;
+})($mol || ($mol = {}));
+var $mol;
+(function ($mol) {
     var $jin2_demo_todomvc_completer = (function (_super) {
         __extends($jin2_demo_todomvc_completer, _super);
         function $jin2_demo_todomvc_completer() {
             _super.apply(this, arguments);
         }
-        $jin2_demo_todomvc_completer.prototype.type = function () { return { get: function () { return ("checkbox"); }, set: function (next) { return null; } }; };
-        $jin2_demo_todomvc_completer.prototype.completed = function () { return { get: function () { return (false); }, set: function (next) { return null; } }; };
-        $jin2_demo_todomvc_completer.prototype.eventClick = function () { return { get: function () { return (null); }, set: function (next) { return null; } }; };
-        $jin2_demo_todomvc_completer.prototype.tagName = function () { return { get: function () { return ("input"); }, set: function (next) { return null; } }; };
+        $jin2_demo_todomvc_completer.prototype.type = function () { return new $jin2_prop(function () { return ("checkbox"); }); };
+        $jin2_demo_todomvc_completer.prototype.completed = function () { return new $jin2_prop(function () { return (false); }); };
+        $jin2_demo_todomvc_completer.prototype.eventClick = function () { return new $jin2_prop(function () { return (null); }); };
+        $jin2_demo_todomvc_completer.prototype.tagName = function () { return new $jin2_prop(function () { return ("input"); }); };
         $jin2_demo_todomvc_completer.prototype.field = function () {
             return {
                 "checked": this.completed(),
@@ -1118,28 +1298,34 @@ var $jin2_view;
                 "click": this.eventClick(),
             };
         };
+        $jin2_demo_todomvc_completer = __decorate([
+            $mol_replace
+        ], $jin2_demo_todomvc_completer);
         return $jin2_demo_todomvc_completer;
-    })($jin2_view_div);
-    $jin2_view.$jin2_demo_todomvc_completer = $jin2_demo_todomvc_completer;
-})($jin2_view || ($jin2_view = {}));
-var $jin2_view;
-(function ($jin2_view) {
+    })($mol_block);
+    $mol.$jin2_demo_todomvc_completer = $jin2_demo_todomvc_completer;
+})($mol || ($mol = {}));
+var $mol;
+(function ($mol) {
     var $jin2_demo_todomvc_dropper = (function (_super) {
         __extends($jin2_demo_todomvc_dropper, _super);
         function $jin2_demo_todomvc_dropper() {
             _super.apply(this, arguments);
         }
-        $jin2_demo_todomvc_dropper.prototype.eventClick = function () { return { get: function () { return (null); }, set: function (next) { return null; } }; };
-        $jin2_demo_todomvc_dropper.prototype.tagName = function () { return { get: function () { return ("button"); }, set: function (next) { return null; } }; };
+        $jin2_demo_todomvc_dropper.prototype.eventClick = function () { return new $jin2_prop(function () { return (null); }); };
+        $jin2_demo_todomvc_dropper.prototype.tagName = function () { return new $jin2_prop(function () { return ("button"); }); };
         $jin2_demo_todomvc_dropper.prototype.event = function () {
             return {
                 "click": this.eventClick(),
             };
         };
+        $jin2_demo_todomvc_dropper = __decorate([
+            $mol_replace
+        ], $jin2_demo_todomvc_dropper);
         return $jin2_demo_todomvc_dropper;
-    })($jin2_view_div);
-    $jin2_view.$jin2_demo_todomvc_dropper = $jin2_demo_todomvc_dropper;
-})($jin2_view || ($jin2_view = {}));
+    })($mol_block);
+    $mol.$jin2_demo_todomvc_dropper = $jin2_demo_todomvc_dropper;
+})($mol || ($mol = {}));
 //# sourceMappingURL=todomvc.view.tree.js.map
 ;
 var __extends = (this && this.__extends) || function (d, b) {
@@ -1158,28 +1344,22 @@ var $jin2_demo_todomvc = (function (_super) {
     function $jin2_demo_todomvc() {
         _super.apply(this, arguments);
     }
-    $jin2_demo_todomvc.app = function (id) {
-        return new this();
-    };
     $jin2_demo_todomvc.prototype.tasksAll = function () {
         var _this = this;
-        return new $jin2_atom(function (prev) {
-            var ids = $jin2_state_local.item(_this.objectPath + '.tasksAll').get();
-            if (!ids)
+        var state = $jin2_state_local.item(this.objectPath + '.tasksAll_');
+        return new $jin2_atom_list(function () {
+            var val = state.get();
+            if (!val)
                 return [];
-            return ids.split('\n').map(function (id) { return _this.task(id); });
+            return val.split(',').map(function (id) { return _this.task(id).get(); });
         }, function (next) {
-            var ids = next.map(function (task) { return task.id().get(); }).join('\n');
-            $jin2_state_local.item(_this.objectPath + '.tasksAll').set(ids);
+            state.set(next.map(function (task) { return task.id().get(); }));
             return next;
         });
     };
     $jin2_demo_todomvc.prototype.tasksSeed = function () {
-        var _this = this;
-        return new $jin2_prop(function (prev) { return Number($jin2_state_local.item(_this.objectPath + '.tasksSeed').get()) || 0; }, function (next) {
-            $jin2_state_local.item(_this.objectPath + '.tasksSeed').set(next);
-            return next;
-        });
+        var state = $jin2_state_local.item(this.objectPath + '.tasksSeed_');
+        return new $jin2_atom(function () { return Number(state.get()) || 0; });
     };
     $jin2_demo_todomvc.prototype.tasks = function () {
         var _this = this;
@@ -1191,7 +1371,7 @@ var $jin2_demo_todomvc = (function (_super) {
         });
     };
     $jin2_demo_todomvc.prototype.task = function (id) {
-        return new $jin2_demo_todomvc_task;
+        return new $jin2_atom_own(function () { return new $jin2_demo_todomvc_task; });
     };
     $jin2_demo_todomvc.prototype.allCompleted = function () {
         var _this = this;
@@ -1220,40 +1400,37 @@ var $jin2_demo_todomvc = (function (_super) {
         return new $jin2_prop(function () { return ''; }, function (next) {
             var id = _this.tasksSeed().get();
             _this.tasksSeed().set(id + 1);
-            var task = _this.task(id);
+            var task = _this.task(id).get();
             task.title().set(next);
-            _this.tasksAll().mutate(function (prev) { return prev.concat(task); });
+            var tasks = _this.tasksAll().get();
+            tasks = tasks.concat(task);
+            _this.tasksAll().set(tasks);
         });
     };
     $jin2_demo_todomvc.prototype.taskDrop = function () {
         var _this = this;
         return new $jin2_prop(function () { return null; }, function (next) {
-            _this.tasksAll().mutate(function (prev) { return prev.filter(function (task) { return task !== next; }); });
-            next.completed().set(null);
-            next.title().set(null);
-            next.destroy();
+            var tasks = _this.tasksAll().get();
+            var index = tasks.indexOf(next);
+            if (index >= 0) {
+                tasks = tasks.slice(0, index).concat(tasks.slice(index + 1));
+                _this.tasksAll().set(tasks);
+                next.data().set({ title: void 0, completed: void 0 });
+            }
         });
     };
     $jin2_demo_todomvc.prototype.taskRows = function () {
         var _this = this;
-        return new $jin2_prop(function () { return _this.tasks().get().map(function (task) { return _this.taskRow(task.objectId).get(); }); }, function (next) { return null; });
+        return new $jin2_prop(function () { return _this.tasks().get().map(function (task) { return _this.taskRow(task.id().get()).get(); }); }, function (next) { return null; });
     };
     $jin2_demo_todomvc.prototype.taskRow = function (id) {
         var _this = this;
-        var next = new $jin2_demo_todomvc_task_view_row;
-        next.task = function () { return new $jin2_prop(function () { return _this.task(id); }); };
-        next.eventDrop = function () { return new $jin2_prop(function () { return null; }, function (next) { return _this.taskDrop().set(_this.task(id)); }); };
-        return next;
-    };
-    $jin2_demo_todomvc.prototype.allCompleter = function () {
-        var _this = this;
-        var sup = _super.prototype.allCompleter.call(this);
-        return new $jin2_prop(function () { return _this.tasksAll().get().length ? sup.get() : null; });
-    };
-    $jin2_demo_todomvc.prototype.footer = function () {
-        var _this = this;
-        var sup = _super.prototype.footer.call(this);
-        return new $jin2_prop(function () { return _this.tasksAll().get().length ? sup.get() : null; });
+        return new $jin2_atom_own(function () {
+            var next = new $jin2_demo_todomvc_task_view_row;
+            next.task = function () { return _this.task(id); };
+            next.eventDrop = function () { return new $jin2_prop(function () { return null; }, function (next) { return _this.taskDrop().set(_this.task(id).get()); }); };
+            return next;
+        });
     };
     __decorate([
         $jin2_grab
@@ -1273,14 +1450,11 @@ var $jin2_demo_todomvc = (function (_super) {
     __decorate([
         $jin2_grab
     ], $jin2_demo_todomvc.prototype, "taskRow", null);
-    __decorate([
-        $jin2_grab
-    ], $jin2_demo_todomvc, "app", null);
     $jin2_demo_todomvc = __decorate([
-        $jin2_view_replace
+        $mol_replace
     ], $jin2_demo_todomvc);
     return $jin2_demo_todomvc;
-})($jin2_view.$jin2_demo_todomvc);
+})($mol.$jin2_demo_todomvc);
 var $jin2_demo_todomvc_task_view_row = (function (_super) {
     __extends($jin2_demo_todomvc_task_view_row, _super);
     function $jin2_demo_todomvc_task_view_row() {
@@ -1290,10 +1464,10 @@ var $jin2_demo_todomvc_task_view_row = (function (_super) {
     $jin2_demo_todomvc_task_view_row.prototype.taskCompleted = function () { return this.task().get().completed(); };
     $jin2_demo_todomvc_task_view_row.prototype.taskTitle = function () { return this.task().get().title(); };
     $jin2_demo_todomvc_task_view_row = __decorate([
-        $jin2_view_replace
+        $mol_replace
     ], $jin2_demo_todomvc_task_view_row);
     return $jin2_demo_todomvc_task_view_row;
-})($jin2_view.$jin2_demo_todomvc_task_view_row);
+})($mol.$jin2_demo_todomvc_task_view_row);
 var $jin2_demo_todomvc_completer = (function (_super) {
     __extends($jin2_demo_todomvc_completer, _super);
     function $jin2_demo_todomvc_completer() {
@@ -1307,10 +1481,10 @@ var $jin2_demo_todomvc_completer = (function (_super) {
         });
     };
     $jin2_demo_todomvc_completer = __decorate([
-        $jin2_view_replace
+        $mol_replace
     ], $jin2_demo_todomvc_completer);
     return $jin2_demo_todomvc_completer;
-})($jin2_view.$jin2_demo_todomvc_completer);
+})($mol.$jin2_demo_todomvc_completer);
 var $jin2_demo_todomvc_adder = (function (_super) {
     __extends($jin2_demo_todomvc_adder, _super);
     function $jin2_demo_todomvc_adder() {
@@ -1320,18 +1494,18 @@ var $jin2_demo_todomvc_adder = (function (_super) {
         var _this = this;
         return new $jin2_prop(function () { return null; }, function (next) {
             if (next.keyCode === 13) {
-                var text = _this.get()['value'].trim();
+                var text = next.target.value.trim();
                 if (!text)
                     return;
                 _this.text().set(text);
-                _this.get()['value'] = '';
+                next.target.value = '';
             }
         });
     };
     $jin2_demo_todomvc_adder = __decorate([
-        $jin2_view_replace
+        $mol_replace
     ], $jin2_demo_todomvc_adder);
     return $jin2_demo_todomvc_adder;
-})($jin2_view.$jin2_demo_todomvc_adder);
+})($mol.$jin2_demo_todomvc_adder);
 //# sourceMappingURL=todomvc.view.js.map
-//index.env=web.stage=release.js.map
+//# sourceMappingURL=index.env=web.stage=release.js.map
