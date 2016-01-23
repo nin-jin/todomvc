@@ -1,0 +1,30 @@
+$mol_demo_todomvc : $mol_block child
+	< titler : $mol_block
+		child < title =todos
+	< header : $mol_block
+		child < headerContent
+			< allCompleter : $mol_checker
+				checked < allCompleted : false
+			< adder : $mol_stringer
+				value < taskNewTitle : =
+				hint < taskNewHint : =What needs to be done?
+				autoFocus < taskNewFocus : true
+	< body : $mol_block
+		child < taskRows : null
+	< footer : $mol_block child
+		< pendinger : $mol_block
+			child < pendingMessage
+				< pendingCounter : $mol_block
+					child < pendingCount : 0
+				< pendingTail : =123
+
+$mol_demo_todomvc_task_view_row : $mol_block
+	attr_mol_demo_todomvc_task_view_row_completed < taskCompleted
+	taskCompleted : false
+	child
+		< completer : $mol_checker
+			checked < taskCompleted
+		< title : $mol_block
+			child < taskTitle : =
+		< dropper : $mol_clicker
+			clicks < taskDrops : null

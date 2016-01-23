@@ -32,7 +32,7 @@ var blackList = [
     'examples/jsblocks' , 'examples/extjs_deftjs'
 ]
 
-var TASK_COUNT = 50
+var TASK_COUNT = 100
 
 var runs = [],
     res = document.getElementById('results'),
@@ -130,7 +130,7 @@ function startTest() {
                 url: '../' + example.url,
                 version: '',
                 prepare: function (runner, contentWindow, contentDocument) {
-                    return runner.waitForElement('#new-todo,.new-todo,.todo__new,[jin2_demo_todomvc_adder]').then(function (element) {
+                    return runner.waitForElement('#new-todo,.new-todo,.todo__new,[mol_demo_todomvc_adder]').then(function (element) {
                         element.focus();
                         return element;
                     });
@@ -141,6 +141,7 @@ function startTest() {
                         step()
                         function step( ) {
                             newTodo.value = 'Something to do ' + i;
+                            newTodo.textContent = 'Something to do ' + i;
                             
                             var keyupEvent = document.createEvent('Event');
                             keyupEvent.initEvent('input', true, true);
@@ -177,7 +178,7 @@ function startTest() {
                     new BenchmarkTestStep('Completing All Items', function (newTodo, contentWindow, contentDocument,done) {
                         step()
                         function step( ) {
-                            var toggleButton = contentDocument.querySelector('.toggle:not(:checked),[jin2_demo_todomvc_task_view_row_completer]:not(:checked),.sapUiRrRow input[type="CheckBox"]:not(:checked)');
+                            var toggleButton = contentDocument.querySelector('.toggle:not(:checked),[mol_demo_todomvc_task_view_row_completer][mol_checker_checked="false"],.sapUiRrRow input[type="CheckBox"]:not(:checked)');
                             
                             if( toggleButton ) {
                                 toggleButton.click()
@@ -190,7 +191,7 @@ function startTest() {
                     new BenchmarkTestStep('Deleting All Items', function (newTodo, contentWindow, contentDocument,done) {
                         step()
                         function step( ) {
-                            var deleteButton = contentDocument.querySelector('.destroy,[jin2_demo_todomvc_task_view_row_dropper]');
+                            var deleteButton = contentDocument.querySelector('.destroy,[mol_demo_todomvc_task_view_row_dropper]');
                             
                             if( deleteButton ) {
                                 deleteButton.click()

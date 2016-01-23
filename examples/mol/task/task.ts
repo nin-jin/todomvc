@@ -1,5 +1,5 @@
 // Task model
-class $jin2_demo_todomvc_task extends $jin2_object {
+class $mol_demo_todomvc_task extends $jin2_object {
 
 	id() {
 		return new $jin2_prop( () => this.objectOwner.objectId )
@@ -20,13 +20,24 @@ class $jin2_demo_todomvc_task extends $jin2_object {
             }
         ) 
     }
-    
+
+    @ $jin2_grab
 	title() {
-		return this.data().wrap( val => val.title || '' , next => ({ title : next }) )
+		return new $jin2_atom(
+            () => this.data().get().title || '' ,
+            next => ( this.data().set({ title : next }) , next )
+        )
 	}
-	
+
+    @ $jin2_grab
 	completed() {
-		return this.data().wrap( val => !!val.completed , next => ({ completed : next }) )
+		return new $jin2_atom(
+            () => !!this.data().get().completed ,
+            next => {
+                this.data().set({ completed : next })
+                return next
+            }
+        )
 	}
 	
 }

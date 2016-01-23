@@ -1216,13 +1216,13 @@
 			}]
 		}]
 	},
-	"jin2_view": {
-		"name": "$jin2_view",
-		"description": "Component system based on jin2_atom",
-		"homepage": "https://github.com/nin-jin/pms-jin2/tree/master/view",
+	"mol": {
+		"name": "$mol",
+		"description": "$mol - new age ui framework",
+		"homepage": "https://github.com/nin-jin/mol",
 		"examples": [{
 			"name": "Example",
-			"url": "examples/jin2_view"
+			"url": "examples/mol"
 		}],
 		"link_groups": []
 	},
