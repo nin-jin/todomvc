@@ -2,10 +2,10 @@
 <html>
 <head>
 <title>DoYouEvenBench</title>
+<script type="text/javascript" src="https://www.google.com/jsapi"></script>
 <script src="benchmark-runner.js" defer></script>
-<script src="tests.js" defer></script>
 <style>
-iframe { border: 1px solid black; }
+iframe { border: 1px solid black; z-index: 1; position: absolute; }
 ol { list-style: none; margin: 0; padding: 0;     overflow: auto; flex: 1;}
 ol ol { margin-left: 2em; list-position: outside; }
 li li { display: inline-block }
@@ -16,6 +16,9 @@ nav { position: absolute; right: 10px; display: flex; flex-direction: column; he
 </style>
 </head>
 <body>
+<div id="analysis" style="position:absolute">
+	<div id="barchart_values"></div>
+</div>
 <script>
 
 // not supported by benchmark apps
@@ -32,7 +35,7 @@ var blackList = [
     'examples/jsblocks' , 'examples/extjs_deftjs'
 ]
 
-var TASK_COUNT = 100
+var TASK_COUNT = 50
 
 var runs = [],
     res = document.getElementById('results'),
@@ -280,12 +283,50 @@ function startTest() {
         for (var key in results) {
             results[key] /= runs.length
         }
-        var res = JSON.stringify(results, null, 4),
-            pre = document.createElement('pre')
-        pre.textContent = runs.length + ' runs average:\n' + res + '\n'
-            + 'See console output for more details.'
-        document.body.appendChild(pre)
+        // var res = JSON.stringify(results, null, 4),
+        //     pre = document.createElement('pre')
+        // pre.textContent = runs.length + ' runs average:\n' + res + '\n'
+        //     + 'See console output for more details.'
+        // document.body.appendChild(pre)
+		
+		drawChart(results)
     }
+}
+
+google.load("visualization", "1", {packages:["corechart"]});
+
+function drawChart(results) {
+    var rawData = [ [ "Project" , "Time" ] ];
+    for (var key in results) {
+        rawData.push([ key, Math.round(results[key]) ]);
+    }
+    var data = google.visualization.arrayToDataTable(rawData);
+
+    var view = new google.visualization.DataView(data);
+    view.setColumns([0, 1,
+                     { calc: "stringify",
+                       sourceColumn: 1,
+                       type: "string",
+                       role: "annotation" }
+                     ]);
+
+    var runWord = "run" + (runs.length > 1 ? "s" : "");
+    var title = "Average time in milliseconds over " + runs.length +
+        " " + runWord + " (lower is better)";
+
+    var options = {
+	title: "TodoMVC Benchmark",
+	width: 1280,
+	height: 960,
+        legend: { position: "none" },
+        backgroundColor: 'transparent',
+        hAxis: {title: title}
+    };
+    var analysis = document.getElementById("analysis");
+    analysis.style.display = 'block';
+    var barchart = document.getElementById("barchart_values");
+    var chart = new google.visualization.BarChart(barchart);
+    chart.draw(view, options);
 }
 
 window.addEventListener('load', startTest);
