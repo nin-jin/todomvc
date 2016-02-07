@@ -130,7 +130,7 @@ function startTest() {
                 url: '../' + example.url,
                 version: '',
                 prepare: function (runner, contentWindow, contentDocument) {
-                    return runner.waitForElement('#new-todo,.new-todo,.todo__new,[mol_demo_todomvc_adder]').then(function (element) {
+                    return runner.waitForElement('#new-todo,.new-todo,.todo__new,[mol_app_todo_adder]').then(function (element) {
                         element.focus();
                         return element;
                     });
@@ -178,7 +178,7 @@ function startTest() {
                     new BenchmarkTestStep('Completing All Items', function (newTodo, contentWindow, contentDocument,done) {
                         step()
                         function step( ) {
-                            var toggleButton = contentDocument.querySelector('.toggle:not(:checked),[mol_demo_todomvc_task_view_row_completer][mol_checker_checked="false"],.sapUiRrRow input[type="CheckBox"]:not(:checked)');
+                            var toggleButton = contentDocument.querySelector('#toggle-all:not(:checked),[mol_app_todo_allcompleter][mol_checker_checked="false"]');
                             
                             if( toggleButton ) {
                                 toggleButton.click()
@@ -191,7 +191,7 @@ function startTest() {
                     new BenchmarkTestStep('Deleting All Items', function (newTodo, contentWindow, contentDocument,done) {
                         step()
                         function step( ) {
-                            var deleteButton = contentDocument.querySelector('.destroy,[mol_demo_todomvc_task_view_row_dropper]');
+                            var deleteButton = contentDocument.querySelector('.destroy,[mol_app_todo_task_view_row_dropper]');
                             
                             if( deleteButton ) {
                                 deleteButton.click()

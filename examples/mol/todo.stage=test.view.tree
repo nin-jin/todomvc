@@ -1,0 +1,17 @@
+$mol_app_todo_1_demo : $mol_app_todo
+	allCompleted : true
+	taskNewTitle : =
+	taskRows : null
+	pendingCount : 0
+
+$mol_app_todo_2_demo : $mol_app_todo
+	allCompleted : false
+	taskNewTitle : =Create new
+	pendingCount : 1
+	taskRows
+		< row1 : $mol_app_todo_task_view_row
+			taskCompleted : true
+			taskTitle : =Create new javascript framework
+		< row2 : $mol_app_todo_task_view_row
+			taskCompleted : false
+			taskTitle : =Create new programming language
