@@ -1,7 +1,6 @@
 {
   "name": "todomvc",
   "version": "0.1.1",
-  "main": "server.js",
   "files": [
     "license.md",
     "server.js",
@@ -12,7 +11,8 @@
     "learn.json"
   ],
   "scripts": {
-      "gulp" : "gulp"
+      "gulp" : "gulp",
+	  "start" : "gulp serve"
   },
   "dependencies": {
     "express": "^4.10.0"

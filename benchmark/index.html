@@ -181,7 +181,7 @@ function startTest() {
                     new BenchmarkTestStep('Completing All Items', function (newTodo, contentWindow, contentDocument,done) {
                         step()
                         function step( ) {
-                            var toggleButton = contentDocument.querySelector('#toggle-all:not(:checked),[mol_app_todo_allcompleter][mol_checker_checked="false"]');
+                            var toggleButton = contentDocument.querySelector('#toggle-all:not(:checked),.toggle-all:not(:checked),.todo__toggle-all:not(:checked),[mol_app_todo_allcompleter][mol_checker_checked="false"]');
                             
                             if( toggleButton ) {
                                 toggleButton.click()
@@ -293,6 +293,8 @@ function startTest() {
     }
 }
 
+window.addEventListener('load', startTest);
+
 google.load("visualization", "1", {packages:["corechart"]});
 
 function drawChart(results) {
@@ -328,8 +330,6 @@ function drawChart(results) {
     var chart = new google.visualization.BarChart(barchart);
     chart.draw(view, options);
 }
-
-window.addEventListener('load', startTest);
 
 </script>
 </body>
