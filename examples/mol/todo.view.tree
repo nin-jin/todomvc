@@ -1,33 +1,18 @@
 $mol_app_todo : $mol_scroller child
 	< panel : $mol_block child < sections
-		< titler : $mol_block
-			child < title =todos
-		< header : $mol_rower
-			child < headerContent
-				< allCompleter : $mol_checker
-					checked < allCompleted : false
-				< adder : $mol_stringer
-					value < taskNewTitle : =
-					hint < taskNewHint : =What needs to be done?
-					autoFocus < taskNewFocus : true
-		< body : $mol_lister
-			items < taskRows : null
-		< footer : $mol_block child
-			< pendinger : $mol_rower
-				child < pendingMessage
-					< pendingCounter : $mol_block
-						child < pendingCount : 0
-					< pendingTail : =tasks
-
-$mol_app_todo_task_view_row : $mol_rower
-	attr_mol_app_todo_task_view_row_completed < taskCompleted
-	taskCompleted : false
-	child
-		< completer : $mol_checker
-			checked < taskCompleted
-		< title : $mol_stringer
-			hint : =Task title
-			value < taskTitle : =
-		< dropper : $mol_clicker
-			child : =✖
-			clicks < taskDrops : null
+		< titler : $mol_block child < title =todos
+		< header : $mol_rower child < headerContent
+			< allCompleter : $mol_checker checked < allCompleted : false
+			< adder : $mol_stringer
+				value < taskNewTitle : =
+				valueChanged < searchQuery : =
+				hint < taskNewHint : =What needs to be done?
+				autoFocus < taskNewFocus : true
+		< body : $mol_lister items < taskRows : null
+		< footer : $mol_rower child < footerContent
+			< pendinger : $mol_block child < pendingMessage
+				< pendingCounter : $mol_block child < pendingCount : 0
+				< pendingTail : = items left
+			< sanitizer : $mol_clicker
+				clicks < sanitizes : null
+				child < sanitizerMessage : =Clear completed

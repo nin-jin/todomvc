@@ -1,8 +1,15 @@
 // Task model
-class $mol_app_todo_task extends $jin2_object {
+class $mol_app_todo_task extends $jin2_atom<any> {
+
+	get() : this {
+		return super.get()
+	}
+	
+	_ = this
+	error = null
 
 	id() {
-		return new $jin2_prop( () => this.objectOwner.objectId )
+		return new $jin2_prop( () => this.objectId )
 	}
 	
     @ $jin2_grab
