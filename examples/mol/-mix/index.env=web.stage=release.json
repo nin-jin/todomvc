@@ -4,81 +4,7 @@
 			":priority": 0,
 			"mol/app/todo/task": {
 				":priority": 1,
-				"jin2/atom": {
-					":priority": 0,
-					"jin2": {
-						"jin/dumb": {
-							":priority": 0,
-							"jin": {
-								"": [
-									"jin/jin.jam.js",
-									"jin/demo.html",
-									"jin/README.md",
-									"jin/package.json",
-									"jin/git-init.cmd"
-								]
-							},
-							"": [
-								"jin/dumb/dumb.ts"
-							]
-						},
-						"": [
-							"jin2/jin2.meta.tree"
-						]
-					},
-					"jin2/object": {
-						":priority": 0,
-						"jin2/error": {
-							":priority": 1,
-							"jin/tree2": {
-								":priority": 3,
-								"jin/type": {
-									":priority": 2,
-									"": [
-										"jin/type/type.ts"
-									]
-								},
-								"": [
-									"jin/tree2/tree.ts"
-								]
-							},
-							"": [
-								"jin2/error/error.ts"
-							]
-						},
-						"": [
-							"jin2/object/object.ts"
-						]
-					},
-					"jin2/prop": {
-						":priority": 0,
-						"": [
-							"jin2/prop/prop.ts"
-						]
-					},
-					"jin2/state/stack": {
-						":priority": 1,
-						"": [
-							"jin2/state/stack/stack.ts"
-						]
-					},
-					"": [
-						"jin2/atom/atom.ts"
-					]
-				},
-				"jin2/grab": {
-					":priority": 1,
-					"": [
-						"jin2/grab/grab.ts"
-					]
-				},
-				"jin2/state/local": {
-					":priority": 3,
-					"": [
-						"jin2/state/local/local.env=web.ts"
-					]
-				},
-				"mol/rower": {
+				"mol/model": {
 					":priority": 0,
 					"mol": {
 						"": [
@@ -86,7 +12,93 @@
 							"mol/README.md"
 						]
 					},
-					"mol/block": {
+					"jin2/atom": {
+						":priority": 0,
+						"jin2": {
+							"jin/dumb": {
+								":priority": 0,
+								"jin": {
+									"": [
+										"jin/jin.jam.js",
+										"jin/demo.html",
+										"jin/README.md",
+										"jin/package.json",
+										"jin/git-init.cmd"
+									]
+								},
+								"": [
+									"jin/dumb/dumb.ts"
+								]
+							},
+							"": [
+								"jin2/jin2.meta.tree"
+							]
+						},
+						"jin2/object": {
+							":priority": 0,
+							"jin2/error": {
+								":priority": 1,
+								"jin/tree2": {
+									":priority": 3,
+									"jin/type": {
+										":priority": 2,
+										"": [
+											"jin/type/type.ts"
+										]
+									},
+									"": [
+										"jin/tree2/tree.ts"
+									]
+								},
+								"": [
+									"jin2/error/error.ts"
+								]
+							},
+							"jin2/log": {
+								":priority": 2,
+								"": [
+									"jin2/log/log.env=web.ts"
+								]
+							},
+							"": [
+								"jin2/object/object.ts"
+							]
+						},
+						"jin2/prop": {
+							":priority": 0,
+							"": [
+								"jin2/prop/prop.ts"
+							]
+						},
+						"jin2/state/stack": {
+							":priority": 1,
+							"": [
+								"jin2/state/stack/stack.ts"
+							]
+						},
+						"": [
+							"jin2/atom/atom.ts"
+						]
+					},
+					"jin2/grab": {
+						":priority": 1,
+						"": [
+							"jin2/grab/grab.ts"
+						]
+					},
+					"": [
+						"mol/model/model.ts"
+					]
+				},
+				"jin2/state/local": {
+					":priority": 2,
+					"": [
+						"jin2/state/local/local.env=web.ts"
+					]
+				},
+				"mol/rower": {
+					":priority": 0,
+					"mol/view": {
 						":priority": 0,
 						"jin2/vary": {
 							":priority": 2,
@@ -95,8 +107,8 @@
 							]
 						},
 						"": [
-							"mol/block/block.css",
-							"mol/block/block.ts"
+							"mol/view/view.css",
+							"mol/view/view.ts"
 						]
 					},
 					"": [
@@ -149,7 +161,7 @@
 				]
 			},
 			"jin2/state/arg": {
-				":priority": 3,
+				":priority": 2,
 				"": [
 					"jin2/state/arg/arg.env=web.ts"
 				]

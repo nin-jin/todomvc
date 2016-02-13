@@ -1,6 +1,6 @@
 $mol_app_todo : $mol_scroller child
-	< panel : $mol_block child < sections
-		< titler : $mol_block child < title =todos
+	< panel : $mol_view child < sections
+		< titler : $mol_view child < title =todos
 		< header : $mol_rower child < headerContent
 			< allCompleter : $mol_checker checked < allCompleted : false
 			< adder : $mol_stringer
@@ -10,8 +10,8 @@ $mol_app_todo : $mol_scroller child
 				autoFocus < taskNewFocus : true
 		< body : $mol_lister items < taskRows : null
 		< footer : $mol_rower child < footerContent
-			< pendinger : $mol_block child < pendingMessage
-				< pendingCounter : $mol_block child < pendingCount : 0
+			< pendinger : $mol_view child < pendingMessage
+				< pendingCounter : $mol_view child < pendingCount : 0
 				< pendingTail : = items left
 			< sanitizer : $mol_clicker
 				clicks < sanitizes : null

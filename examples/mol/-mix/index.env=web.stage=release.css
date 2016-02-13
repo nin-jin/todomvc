@@ -1,4 +1,4 @@
-[mol_error="fail"] {
+[mol_view_error="fail"] {
 	background-image: -webkit-repeating-linear-gradient(45deg, rgba(255,220,220,1), rgba(255,220,220,1) 11px, rgba(255,255,220,1) 10px, rgba(255,255,220,1) 20px) !important;
 	background-image: repeating-linear-gradient(
 		45deg,
@@ -10,19 +10,19 @@
 	background-size: 28px 28px !important;
 }
 
-@-webkit-keyframes mol_show {
+@-webkit-keyframes mol_view_show {
 	from {
 		opacity: 0;
 	}
 }
 
-@keyframes mol_show {
+@keyframes mol_view_show {
 	from {
 		opacity: 0;
 	}
 }
 
-@-webkit-keyframes mol_error_move {
+@-webkit-keyframes mol_view_error_move {
   0% {
 	background-position: 0 0;
   }
@@ -31,7 +31,7 @@
   }
 }
 
-@keyframes mol_error_move {
+@keyframes mol_view_error_move {
   0% {
 	background-position: 0 0;
   }
@@ -40,12 +40,12 @@
   }
 }
 
-[mol] {
-	-webkit-animation: jin2_show .25s ease-in;
-	        animation: jin2_show .25s ease-in;
+[mol_view] {
+	-webkit-animation: mol_view_show .25s ease-in;
+	        animation: mol_view_show .25s ease-in;
 }
 
-[mol_error="wait"] {
+[mol_view_error="wait"] {
 	background-image: -webkit-repeating-linear-gradient(45deg, rgba(0,0,255,.05), rgba(0,0,255,.05) 11px, rgba(255,255,255,.02) 10px, rgba(255,255,255,.02) 20px) !important;
 	background-image: repeating-linear-gradient(
 		45deg,
@@ -55,8 +55,8 @@
 		rgba(255,255,255,.02) 20px
 	) !important;
 	background-size: 28px 28px !important;
-	-webkit-animation: mol_show 1s linear , mol_error_move .25s linear infinite !important;
-	        animation: mol_show 1s linear , mol_error_move .25s linear infinite !important;
+	-webkit-animation: mol_view_show 1s linear , mol_view_error_move .25s linear infinite !important;
+	        animation: mol_view_show 1s linear , mol_view_error_move .25s linear infinite !important;
 }
 
 [mol_rower] {
@@ -101,10 +101,10 @@
 	vertical-align: middle;
 	padding: 1vmin;
 	margin: 0 1px 1px 0;
-	display: -webkit-inline-box;
-	display: -webkit-inline-flex;
-	display: -ms-inline-flexbox;
-	display: inline-flex;
+	display: -webkit-box;
+	display: -webkit-flex;
+	display: -ms-flexbox;
+	display: flex;
 	background: #FFFFFF;
 	background: rgba( 255 , 255 , 255 , .2 );
 	-webkit-box-flex: 1;
@@ -167,7 +167,10 @@
 }
 
 [mol_stringer] {
-	display: inline-block;
+	display: -webkit-box;
+	display: -webkit-flex;
+	display: -ms-flexbox;
+	display: flex;
 	vertical-align: middle;
 	border: none;
 	outline: 1px solid #000000;
@@ -220,6 +223,13 @@
 	        align-self: stretch;
 	outline: 1px solid #000000;
 	outline: 1px solid rgba( 0 , 0 , 0 , .1 );
+}
+
+@media print {
+
+	[mol_scroller] {
+		overflow: visible;
+	}
 }
 
 [mol_scroller]::-webkit-scrollbar {

@@ -314,6 +314,59 @@ function $jin2_error(info) {
 }
 //# sourceMappingURL=error.js.map
 ;
+function $jin2_log() {
+    var values = [];
+    for (var _i = 0; _i < arguments.length; _i++) {
+        values[_i - 0] = arguments[_i];
+    }
+    if (typeof console === 'undefined')
+        return;
+    console.log(console, arguments);
+    return arguments[0];
+}
+function $jin2_log_info(message) {
+    var values = [];
+    for (var _i = 1; _i < arguments.length; _i++) {
+        values[_i - 1] = arguments[_i];
+    }
+    if (typeof console === 'undefined')
+        return;
+    if (!$jin2_log_filter.test(message))
+        return;
+    console.log(message, values);
+}
+function $jin2_log_warn(message) {
+    var values = [];
+    for (var _i = 1; _i < arguments.length; _i++) {
+        values[_i - 1] = arguments[_i];
+    }
+    if (typeof console === 'undefined')
+        return;
+    if (!$jin2_log_filter.test(message))
+        return;
+    return console.warn.apply(console, arguments);
+}
+function $jin2_log_error(error) {
+    if (typeof console === 'undefined')
+        return;
+    if (error.jin_log_isLogged)
+        return;
+    var message = error.stack || error;
+    if (console['exception'])
+        console['exception'](error);
+    else if (console.error)
+        console.error(message);
+    else if (console.log)
+        console.log(message);
+    error.jin_log_isLogged = true;
+}
+function $jin2_log_error_ignore(error) {
+    error.jin_log_isLogged = true;
+    return error;
+}
+var $jin2_log_filter = /^$/;
+//# sourceMappingURL=log.env=web.js.map
+;
 function $jin2_object_path(obj) {
     var path = obj.objectPath;
     if (path)
@@ -331,6 +384,7 @@ var $jin2_object = (function () {
         this._objectOwner = null;
     }
     $jin2_object.prototype.destroy = function () {
+        $jin2_log_info(this.objectPath + ' destroy');
         for (var key in this) {
             var val = this[key];
             if (!val)
@@ -448,6 +502,10 @@ var $jin2_object = (function () {
     $jin2_object.prototype.objectEquals = function (other) {
         return this === other;
     };
+    $jin2_object.prototype.setup = function (init) {
+        init(this);
+        return this;
+    };
     $jin2_object.seed = 0;
     return $jin2_object;
 }());
@@ -483,7 +541,7 @@ var $jin2_prop = (function (_super) {
         return prev;
     };
     $jin2_prop.prototype.put_ = function (next, prev) {
-        throw $jin2_error({ reason: 'Read only' });
+        return null;
     };
     $jin2_prop.prototype.get = function () {
         return this.pull_();
@@ -497,6 +555,15 @@ var $jin2_prop = (function (_super) {
         this.set(next, prev);
         return next;
     };
+    Object.defineProperty($jin2_prop.prototype, "objectPath", {
+        get: function () {
+            return (this._objectPath == null)
+                ? (this._objectPath = $jin2_object_path(this.objectOwner) + '.' + this.objectName + '("' + this.objectId + '")')
+                : this._objectPath;
+        },
+        enumerable: true,
+        configurable: true
+    });
     return $jin2_prop;
 }($jin2_object));
 //# sourceMappingURL=prop.js.map
@@ -633,6 +700,7 @@ var $jin2_atom = (function (_super) {
         }
     };
     $jin2_atom.prototype.notify = function (prev) {
+        $jin2_log_info(this._objectOwner && this.objectPath, this._, prev);
         this.notifySlaves();
         this.notify_(this._, prev);
     };
@@ -782,16 +850,16 @@ var $jin2_atom = (function (_super) {
         this.schedule();
     };
     $jin2_atom.schedule = function () {
-        if (this._timer)
+        var _this = this;
+        if (this._scheduled)
             return;
-        this._timer = setTimeout(this.induce.bind(this));
+        requestAnimationFrame(function () {
+            _this._scheduled = false;
+            _this.induce();
+        });
+        this._scheduled = true;
     };
     $jin2_atom.induce = function () {
-        if (this._timer) {
-            clearTimeout(this._timer);
-            this._timer = null;
-        }
-        this.schedule();
         while (true) {
             while (this._minUpdateDeep < this._planPull.length) {
                 var level = this._planPull[this._minUpdateDeep++];
@@ -813,8 +881,6 @@ var $jin2_atom = (function (_super) {
             if (!someReaped)
                 break;
         }
-        clearTimeout(this._timer);
-        this._timer = null;
     };
     $jin2_atom.wait = new Error('Wait...');
     $jin2_atom.obsolete = new Error('Obsolate state!');
@@ -844,6 +910,7 @@ var $jin2_atom_list = (function (_super) {
     return $jin2_atom_list;
 }($jin2_atom));
 window.addEventListener('error', function (event) {
+    $jin2_atom.schedule();
     var stack = $jin2_atom.stack;
     $jin2_atom.stack = [];
     for (var _i = 0, stack_1 = stack; _i < stack_1.length; _i++) {
@@ -854,7 +921,6 @@ window.addEventListener('error', function (event) {
         var atom = stack_2[_a];
         atom.fail(event['error']);
     }
-    $jin2_atom.induce();
 });
 //# sourceMappingURL=atom.js.map
 ;
@@ -889,6 +955,43 @@ function $jin2_grab(prototype, name, descr) {
     }
 }
 //# sourceMappingURL=grab.js.map
+;
+var __extends = (this && this.__extends) || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+};
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var $mol_model = (function (_super) {
+    __extends($mol_model, _super);
+    function $mol_model() {
+        _super.apply(this, arguments);
+        this._ = this;
+        this.error = null;
+    }
+    $mol_model.app = function (id) {
+        return new this();
+    };
+    $mol_model.prototype.get = function () {
+        return _super.prototype.get.call(this);
+    };
+    $mol_model.prototype.prop = function (pull, put) {
+        return new $jin2_prop(pull, put);
+    };
+    $mol_model.prototype.atom = function (pull, put, reap) {
+        return new $jin2_atom(pull, put, reap);
+    };
+    __decorate([
+        $jin2_grab
+    ], $mol_model, "app", null);
+    return $mol_model;
+}($jin2_atom));
+//# sourceMappingURL=model.js.map
 ;
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -1035,54 +1138,46 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-var $mol_block = (function (_super) {
-    __extends($mol_block, _super);
-    function $mol_block() {
+var $mol_view = (function (_super) {
+    __extends($mol_view, _super);
+    function $mol_view() {
         _super.apply(this, arguments);
-        this._ = this;
-        this.error = null;
     }
-    $mol_block.app = function (id) {
-        return new this();
-    };
-    $mol_block.prototype.get = function () {
-        return _super.prototype.get.call(this);
-    };
-    $mol_block.prototype.tagName = function () {
+    $mol_view.prototype.tagName = function () {
         return new $jin2_prop('div');
     };
-    $mol_block.prototype.nameSpace = function () {
+    $mol_view.prototype.nameSpace = function () {
         return new $jin2_prop('http://www.w3.org/1999/xhtml');
     };
-    $mol_block.prototype.child = function () {
-        return new $jin2_atom(function () { return null; });
-    };
-    $mol_block.prototype.childNodes = function () {
-        return this.child();
-    };
-    $mol_block.prototype.attr = function () {
-        var attr = {};
+    $mol_view.prototype.child = function () { return this.prop(null); };
+    $mol_view.prototype.childNodes = function () { return this.child(); };
+    $mol_view.prototype.attr = function () {
+        if (this._attr)
+            return this._attr;
+        this._attr = {};
         for (var key in this) {
             if (typeof this[key] !== 'function')
                 continue;
             if (key.substring(0, 5) !== 'attr_')
                 continue;
-            attr[key.substring(5)] = this[key]();
+            this._attr[key.substring(5)] = this[key]();
         }
-        return attr;
+        return this._attr;
     };
-    $mol_block.prototype.field = function () {
-        var field = {};
+    $mol_view.prototype.field = function () {
+        if (this._field)
+            return this._field;
+        this._field = {};
         for (var key in this) {
             if (typeof this[key] !== 'function')
                 continue;
             if (key.substring(0, 6) !== 'field_')
                 continue;
-            field[key.substring(6)] = this[key]();
+            this._field[key.substring(6)] = this[key]();
         }
-        return field;
+        return this._field;
     };
-    $mol_block.prototype.event = function () {
+    $mol_view.prototype.event = function () {
         var event = {};
         for (var key in this) {
             if (typeof this[key] !== 'function')
@@ -1093,7 +1188,7 @@ var $mol_block = (function (_super) {
         }
         return event;
     };
-    $mol_block.prototype.node = function () {
+    $mol_view.prototype.node = function () {
         var _this = this;
         return new $jin2_vary(function () {
             var id = _this.objectPath;
@@ -1109,11 +1204,11 @@ var $mol_block = (function (_super) {
                     var prop = events[name];
                     router.addEventListener(name, function (event) {
                         prop.set(event);
-                        requestAnimationFrame($jin2_atom.induce.bind($jin2_atom));
+                        $jin2_atom.induce();
                     }, false);
                 })(name);
             var proto1 = _this.objectOwner;
-            while (proto1 && (proto1.constructor !== $mol_block) && (proto1.constructor !== Function)) {
+            while (proto1 && (proto1.constructor !== $mol_view) && (proto1.constructor !== Function)) {
                 var className = $jin2_object_path(proto1.constructor);
                 if (!className)
                     continue;
@@ -1121,7 +1216,7 @@ var $mol_block = (function (_super) {
                 proto1 = Object.getPrototypeOf(proto1);
             }
             var proto2 = _this;
-            while (proto2 && (proto2.constructor !== $mol_block)) {
+            while (proto2 && (proto2.constructor !== $mol_view)) {
                 var className = $jin2_object_path(proto2.constructor);
                 if (!className)
                     continue;
@@ -1130,7 +1225,7 @@ var $mol_block = (function (_super) {
             }
             var onAttach = function (event) {
                 prev.removeEventListener('DOMNodeInserted', onAttach);
-                _this.version().pull();
+                _this.version()['pull']();
             };
             if (prev.parentNode) {
                 setTimeout(onAttach);
@@ -1141,9 +1236,9 @@ var $mol_block = (function (_super) {
             return prev;
         });
     };
-    $mol_block.prototype.version = function () {
+    $mol_view.prototype.version = function () {
         var _this = this;
-        var prop = new $jin2_atom(function () {
+        var prop = this.atom(function () {
             var prev = _this.node().get();
             var attrs = _this.attr();
             for (var name in attrs) {
@@ -1213,16 +1308,16 @@ var $mol_block = (function (_super) {
                 }
                 obj[names[names.length - 1]] = fields[path].get();
             }
-            prev.removeAttribute('mol_error');
+            prev.removeAttribute('mol_view_error');
             return prev;
         });
-        prop.fail_ = function (error) {
+        prop['fail_'] = function (error) {
             var node = _this.node().get();
             if (error === $jin2_atom.wait) {
-                node.setAttribute('mol_error', 'wait');
+                node.setAttribute('mol_view_error', 'wait');
             }
             else {
-                node.setAttribute('mol_error', 'fail');
+                node.setAttribute('mol_view_error', 'fail');
             }
             return node;
         };
@@ -1230,21 +1325,18 @@ var $mol_block = (function (_super) {
     };
     __decorate([
         $jin2_grab
-    ], $mol_block.prototype, "node", null);
+    ], $mol_view.prototype, "node", null);
     __decorate([
         $jin2_grab
-    ], $mol_block.prototype, "version", null);
-    __decorate([
-        $jin2_grab
-    ], $mol_block, "app", null);
-    return $mol_block;
-}($jin2_atom));
+    ], $mol_view.prototype, "version", null);
+    return $mol_view;
+}($mol_model));
 function $mol_replace(Class) {
     $mol[Class.name] = Class;
     window[Class.name] = Class;
     return Class;
 }
-//# sourceMappingURL=block.js.map
+//# sourceMappingURL=view.js.map
 ;
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -1268,7 +1360,7 @@ var $mol;
             $mol_replace
         ], $mol_rower);
         return $mol_rower;
-    }($mol_block));
+    }($mol_view));
     $mol.$mol_rower = $mol_rower;
 })($mol || ($mol = {}));
 //# sourceMappingURL=rower.view.tree.js.map
@@ -1291,10 +1383,10 @@ var $mol;
         function $mol_clicker() {
             _super.apply(this, arguments);
         }
-        $mol_clicker.prototype.field_tabIndex = function () { return new $jin2_atom(function () { return (0); }); };
-        $mol_clicker.prototype.type = function () { return new $jin2_atom(function () { return ("minor"); }); };
+        $mol_clicker.prototype.field_tabIndex = function () { return this.prop(function () { return (0); }); };
+        $mol_clicker.prototype.type = function () { return this.prop(function () { return ("minor"); }); };
         $mol_clicker.prototype.attr_mol_clicker_type = function () { return this.type(); };
-        $mol_clicker.prototype.clicks = function () { return new $jin2_atom(function () { return (null); }); };
+        $mol_clicker.prototype.clicks = function () { return this.prop(function () { return (null); }); };
         $mol_clicker.prototype.event_click = function () { return this.clicks(); };
         __decorate([
             $jin2_grab
@@ -1309,7 +1401,7 @@ var $mol;
             $mol_replace
         ], $mol_clicker);
         return $mol_clicker;
-    }($mol_block));
+    }($mol_view));
     $mol.$mol_clicker = $mol_clicker;
 })($mol || ($mol = {}));
 //# sourceMappingURL=clicker.view.tree.js.map
@@ -1332,8 +1424,8 @@ var $mol_clicker = (function (_super) {
     }
     $mol_clicker.prototype.clicks = function () {
         var _this = this;
-        return new $jin2_atom(null, function (event) {
-            alert('Clicked ' + _this.objectOwner.objectName);
+        return this.prop(null, function (event) {
+            alert("Clicked \"" + _this.objectName + "\"");
         });
     };
     __decorate([
@@ -1364,7 +1456,7 @@ var $mol;
         function $mol_checker() {
             _super.apply(this, arguments);
         }
-        $mol_checker.prototype.checked = function () { return new $jin2_atom(function () { return (false); }); };
+        $mol_checker.prototype.checked = function () { return this.prop(function () { return (false); }); };
         $mol_checker.prototype.attr_mol_checker_checked = function () { return this.checked(); };
         __decorate([
             $jin2_grab
@@ -1396,7 +1488,7 @@ var $mol_checker = (function (_super) {
     }
     $mol_checker.prototype.clicks = function () {
         var _this = this;
-        return new $jin2_atom(function () { return null; }, function (next) {
+        return this.prop(null, function (next) {
             _this.checked().set(!_this.checked().get());
         });
     };
@@ -1428,21 +1520,21 @@ var $mol;
         function $mol_stringer() {
             _super.apply(this, arguments);
         }
-        $mol_stringer.prototype.valueChanged = function () { return new $jin2_atom(function () { return (""); }); };
-        $mol_stringer.prototype.hint = function () { return new $jin2_atom(function () { return ("hint"); }); };
+        $mol_stringer.prototype.valueChanged = function () { return this.prop(function () { return (""); }); };
+        $mol_stringer.prototype.hint = function () { return this.prop(function () { return ("hint"); }); };
         $mol_stringer.prototype.attr_mol_stringer_hint = function () { return this.hint(); };
-        $mol_stringer.prototype.attr_tabindex = function () { return new $jin2_atom(function () { return ("0"); }); };
-        $mol_stringer.prototype.autoFocus = function () { return new $jin2_atom(function () { return (false); }); };
+        $mol_stringer.prototype.attr_tabindex = function () { return this.prop(function () { return ("0"); }); };
+        $mol_stringer.prototype.autoFocus = function () { return this.prop(function () { return (false); }); };
         $mol_stringer.prototype.field_autoFocus = function () { return this.autoFocus(); };
-        $mol_stringer.prototype.editable = function () { return new $jin2_atom(function () { return (true); }); };
+        $mol_stringer.prototype.editable = function () { return this.prop(function () { return (true); }); };
         $mol_stringer.prototype.field_contentEditable = function () { return this.editable(); };
-        $mol_stringer.prototype.value = function () { return new $jin2_atom(function () { return (""); }); };
+        $mol_stringer.prototype.value = function () { return this.prop(function () { return (""); }); };
         $mol_stringer.prototype.field_textContent = function () { return this.value(); };
-        $mol_stringer.prototype.presses = function () { return new $jin2_atom(function () { return (null); }); };
+        $mol_stringer.prototype.presses = function () { return this.prop(function () { return (null); }); };
         $mol_stringer.prototype.event_keydown = function () { return this.presses(); };
-        $mol_stringer.prototype.changes = function () { return new $jin2_atom(function () { return (null); }); };
+        $mol_stringer.prototype.changes = function () { return this.prop(function () { return (null); }); };
         $mol_stringer.prototype.event_input = function () { return this.changes(); };
-        $mol_stringer.prototype.blurs = function () { return new $jin2_atom(function () { return (null); }); };
+        $mol_stringer.prototype.blurs = function () { return this.prop(function () { return (null); }); };
         $mol_stringer.prototype.event_blur = function () { return this.blurs(); };
         __decorate([
             $jin2_grab
@@ -1475,7 +1567,7 @@ var $mol;
             $mol_replace
         ], $mol_stringer);
         return $mol_stringer;
-    }($mol_block));
+    }($mol_view));
     $mol.$mol_stringer = $mol_stringer;
 })($mol || ($mol = {}));
 //# sourceMappingURL=stringer.view.tree.js.map
@@ -1498,7 +1590,7 @@ var $mol_stringer = (function (_super) {
     }
     $mol_stringer.prototype.presses = function () {
         var _this = this;
-        return new $jin2_atom(function () { return null; }, function (next) {
+        return this.prop(null, function (next) {
             switch (next.keyCode) {
                 case 13:
                     _this.commits().set(next);
@@ -1514,20 +1606,20 @@ var $mol_stringer = (function (_super) {
     };
     $mol_stringer.prototype.changes = function () {
         var _this = this;
-        return new $jin2_atom(function () { return null; }, function (next) {
+        return this.prop(null, function (next) {
             _this.valueChanged().set(next.target.textContent.trim());
         });
     };
     $mol_stringer.prototype.commits = function () {
         var _this = this;
-        return new $jin2_atom(function () { return null; }, function (next) {
+        return this.prop(null, function (next) {
             _this.value().set(next.target.textContent.trim());
             _this.reverts().set(next);
         });
     };
     $mol_stringer.prototype.reverts = function () {
         var _this = this;
-        return new $jin2_atom(function () { return null; }, function (next) {
+        return this.prop(null, function (next) {
             next.target.textContent = _this.value().get();
             _this.changes().set(next);
         });
@@ -1566,19 +1658,14 @@ var $mol_app_todo_task = (function (_super) {
     __extends($mol_app_todo_task, _super);
     function $mol_app_todo_task() {
         _super.apply(this, arguments);
-        this._ = this;
-        this.error = null;
     }
-    $mol_app_todo_task.prototype.get = function () {
-        return _super.prototype.get.call(this);
-    };
     $mol_app_todo_task.prototype.id = function () {
         var _this = this;
         return new $jin2_prop(function () { return _this.objectId; });
     };
     $mol_app_todo_task.prototype.data = function () {
         var _this = this;
-        return new $jin2_atom(function () { return $jin2_state_local.item(_this.objectPath).get() || { title: '', completed: false }; }, function (next) {
+        return this.atom(function () { return $jin2_state_local.item(_this.objectPath).get() || { title: '', completed: false }; }, function (next) {
             var prev = _this.data().get();
             if (next && prev)
                 for (var key in prev)
@@ -1590,14 +1677,14 @@ var $mol_app_todo_task = (function (_super) {
     };
     $mol_app_todo_task.prototype.title = function () {
         var _this = this;
-        return new $jin2_atom(function () { return _this.data().get().title; }, function (next) {
+        return this.prop(function () { return _this.data().get().title; }, function (next) {
             _this.data().set({ title: next });
             return next;
         });
     };
     $mol_app_todo_task.prototype.completed = function () {
         var _this = this;
-        return new $jin2_atom(function () { return _this.data().get().completed; }, function (next) {
+        return this.prop(function () { return _this.data().get().completed; }, function (next) {
             _this.data().set({ completed: next });
             return next;
         });
@@ -1612,7 +1699,7 @@ var $mol_app_todo_task = (function (_super) {
         $jin2_grab
     ], $mol_app_todo_task.prototype, "completed", null);
     return $mol_app_todo_task;
-}($jin2_atom));
+}($mol_model));
 //# sourceMappingURL=task.js.map
 ;
 var __extends = (this && this.__extends) || function (d, b) {
@@ -1634,32 +1721,32 @@ var $mol;
             _super.apply(this, arguments);
         }
         $mol_app_todo_task_view_row.prototype.attr_mol_app_todo_task_view_row_completed = function () { return this.taskCompleted(); };
-        $mol_app_todo_task_view_row.prototype.taskCompleted = function () { return new $jin2_atom(function () { return (false); }); };
+        $mol_app_todo_task_view_row.prototype.taskCompleted = function () { return this.prop(function () { return (false); }); };
         $mol_app_todo_task_view_row.prototype.completer = function () {
             var _this = this;
             var view = new $mol.$mol_checker;
             view.checked = function () { return _this.taskCompleted(); };
             return view;
         };
-        $mol_app_todo_task_view_row.prototype.taskTitle = function () { return new $jin2_atom(function () { return (""); }); };
+        $mol_app_todo_task_view_row.prototype.taskTitle = function () { return this.prop(function () { return (""); }); };
         $mol_app_todo_task_view_row.prototype.title = function () {
             var _this = this;
             var view = new $mol.$mol_stringer;
-            view.hint = function () { return new $jin2_atom(function () { return ("Task title"); }); };
+            view.hint = function () { return _this.prop(function () { return ("Task title"); }); };
             view.value = function () { return _this.taskTitle(); };
             return view;
         };
-        $mol_app_todo_task_view_row.prototype.taskDrops = function () { return new $jin2_atom(function () { return (null); }); };
+        $mol_app_todo_task_view_row.prototype.taskDrops = function () { return this.prop(function () { return (null); }); };
         $mol_app_todo_task_view_row.prototype.dropper = function () {
             var _this = this;
             var view = new $mol.$mol_clicker;
-            view.child = function () { return new $jin2_atom(function () { return ("✖"); }); };
+            view.child = function () { return _this.prop(function () { return ("✖"); }); };
             view.clicks = function () { return _this.taskDrops(); };
             return view;
         };
         $mol_app_todo_task_view_row.prototype.child = function () {
             var _this = this;
-            return new $jin2_atom(function () { return [_this.completer().get(), _this.title().get(), _this.dropper().get()]; });
+            return this.prop(function () { return [_this.completer().get(), _this.title().get(), _this.dropper().get()]; });
         };
         __decorate([
             $jin2_grab
@@ -1709,21 +1796,21 @@ var $mol;
         function $mol_scroller() {
             _super.apply(this, arguments);
         }
-        $mol_scroller.prototype.overflowTop = function () { return new $jin2_atom(function () { return (false); }); };
+        $mol_scroller.prototype.overflowTop = function () { return this.prop(function () { return (false); }); };
         $mol_scroller.prototype.attr_mol_scroller_overflowTop = function () { return this.overflowTop(); };
-        $mol_scroller.prototype.overflowBottom = function () { return new $jin2_atom(function () { return (false); }); };
+        $mol_scroller.prototype.overflowBottom = function () { return this.prop(function () { return (false); }); };
         $mol_scroller.prototype.attr_mol_scroller_overflowBottom = function () { return this.overflowBottom(); };
-        $mol_scroller.prototype.overflowLeft = function () { return new $jin2_atom(function () { return (false); }); };
+        $mol_scroller.prototype.overflowLeft = function () { return this.prop(function () { return (false); }); };
         $mol_scroller.prototype.attr_mol_scroller_overflowLeft = function () { return this.overflowLeft(); };
-        $mol_scroller.prototype.overflowRight = function () { return new $jin2_atom(function () { return (false); }); };
+        $mol_scroller.prototype.overflowRight = function () { return this.prop(function () { return (false); }); };
         $mol_scroller.prototype.attr_mol_scroller_overflowRight = function () { return this.overflowRight(); };
-        $mol_scroller.prototype.scrolls = function () { return new $jin2_atom(function () { return (null); }); };
+        $mol_scroller.prototype.scrolls = function () { return this.prop(function () { return (null); }); };
         $mol_scroller.prototype.event_scroll = function () { return this.scrolls(); };
         $mol_scroller.prototype.event_overflow = function () { return this.scrolls(); };
         $mol_scroller.prototype.event_underflow = function () { return this.scrolls(); };
-        $mol_scroller.prototype.scrollTop = function () { return new $jin2_atom(function () { return (0); }); };
+        $mol_scroller.prototype.scrollTop = function () { return this.prop(function () { return (0); }); };
         $mol_scroller.prototype.field_scrollTop = function () { return this.scrollTop(); };
-        $mol_scroller.prototype.scrollLeft = function () { return new $jin2_atom(function () { return (0); }); };
+        $mol_scroller.prototype.scrollLeft = function () { return this.prop(function () { return (0); }); };
         $mol_scroller.prototype.field_scrollLeft = function () { return this.scrollLeft(); };
         __decorate([
             $jin2_grab
@@ -1750,7 +1837,7 @@ var $mol;
             $mol_replace
         ], $mol_scroller);
         return $mol_scroller;
-    }($mol_block));
+    }($mol_view));
     $mol.$mol_scroller = $mol_scroller;
 })($mol || ($mol = {}));
 //# sourceMappingURL=scroller.view.tree.js.map
@@ -1773,31 +1860,31 @@ var $mol_scroller = (function (_super) {
     }
     $mol_scroller.prototype.scrollTop = function () {
         var state = $jin2_state_local.item(this.objectPath + '.scrollTop_');
-        return new $jin2_atom(function () { return Number(state.get()) || 0; }, function (next) { return (state.set(next), next); });
+        return this.atom(function () { return Number(state.get()) || 0; }, function (next) { return (state.set(next), next); });
     };
     $mol_scroller.prototype.scrollLeft = function () {
         var state = $jin2_state_local.item(this.objectPath + '.scrollLeft_');
-        return new $jin2_atom(function () { return Number(state.get()) || 0; }, function (next) { return (state.set(next), next); });
+        return this.atom(function () { return Number(state.get()) || 0; }, function (next) { return (state.set(next), next); });
     };
     $mol_scroller.prototype.scrollHeight = function () {
         var _this = this;
-        return new $jin2_atom(function () { return _this.node().get().scrollHeight; });
+        return this.atom(function () { return _this.node().get().scrollHeight; });
     };
     $mol_scroller.prototype.scrollWidth = function () {
         var _this = this;
-        return new $jin2_atom(function () { return _this.node().get().scrollWidth; });
+        return this.atom(function () { return _this.node().get().scrollWidth; });
     };
     $mol_scroller.prototype.offsetHeight = function () {
         var _this = this;
-        return new $jin2_atom(function () { return _this.node().get().offsetHeight; });
+        return this.atom(function () { return _this.node().get().offsetHeight; });
     };
     $mol_scroller.prototype.offsetWidth = function () {
         var _this = this;
-        return new $jin2_atom(function () { return _this.node().get().offsetWidth; });
+        return this.atom(function () { return _this.node().get().offsetWidth; });
     };
     $mol_scroller.prototype.scrolls = function () {
         var _this = this;
-        return new $jin2_atom(null, function (event) {
+        return this.prop(null, function (event) {
             _this.scrollTop().set(event.target.scrollTop);
             _this.scrollLeft().set(event.target.scrollLeft);
             _this.scrollHeight().set(event.target.scrollHeight);
@@ -1808,19 +1895,19 @@ var $mol_scroller = (function (_super) {
     };
     $mol_scroller.prototype.overflowTop = function () {
         var _this = this;
-        return new $jin2_atom(function () { return _this.scrollTop().get() > 0; });
+        return this.prop(function () { return _this.scrollTop().get() > 0; });
     };
     $mol_scroller.prototype.overflowLeft = function () {
         var _this = this;
-        return new $jin2_atom(function () { return _this.scrollLeft().get() > 0; });
+        return this.prop(function () { return _this.scrollLeft().get() > 0; });
     };
     $mol_scroller.prototype.overflowBottom = function () {
         var _this = this;
-        return new $jin2_atom(function () { return (_this.scrollHeight().get() - _this.scrollTop().get() - _this.offsetHeight().get()) > 0; });
+        return this.atom(function () { return (_this.scrollHeight().get() - _this.scrollTop().get() - _this.offsetHeight().get()) > 0; });
     };
     $mol_scroller.prototype.overflowRight = function () {
         var _this = this;
-        return new $jin2_atom(function () { return (_this.scrollWidth().get() - _this.scrollLeft().get() - _this.offsetWidth().get()) > 0; });
+        return this.atom(function () { return (_this.scrollWidth().get() - _this.scrollLeft().get() - _this.offsetWidth().get()) > 0; });
     };
     __decorate([
         $jin2_grab
@@ -1880,8 +1967,8 @@ var $mol;
         function $mol_lister() {
             _super.apply(this, arguments);
         }
-        $mol_lister.prototype.rowMinHeight = function () { return new $jin2_atom(function () { return (20); }); };
-        $mol_lister.prototype.items = function () { return new $jin2_atom(function () { return (null); }); };
+        $mol_lister.prototype.rowMinHeight = function () { return this.prop(function () { return (20); }); };
+        $mol_lister.prototype.items = function () { return this.prop(function () { return (null); }); };
         $mol_lister.prototype.itemsVisible = function () { return this.items(); };
         $mol_lister.prototype.child = function () { return this.itemsVisible(); };
         $mol_lister.prototype.filler = function () {
@@ -1901,7 +1988,7 @@ var $mol;
             $mol_replace
         ], $mol_lister);
         return $mol_lister;
-    }($mol_block));
+    }($mol_view));
     $mol.$mol_lister = $mol_lister;
 })($mol || ($mol = {}));
 var $mol;
@@ -1911,7 +1998,7 @@ var $mol;
         function $mol_lister_filler() {
             _super.apply(this, arguments);
         }
-        $mol_lister_filler.prototype.height = function () { return new $jin2_atom(function () { return ("0"); }); };
+        $mol_lister_filler.prototype.height = function () { return this.prop(function () { return ("0"); }); };
         $mol_lister_filler.prototype.field_style_height = function () { return this.height(); };
         __decorate([
             $jin2_grab
@@ -1920,7 +2007,7 @@ var $mol;
             $mol_replace
         ], $mol_lister_filler);
         return $mol_lister_filler;
-    }($mol_block));
+    }($mol_view));
     $mol.$mol_lister_filler = $mol_lister_filler;
 })($mol || ($mol = {}));
 //# sourceMappingURL=lister.view.tree.js.map
@@ -1943,7 +2030,7 @@ var $mol_lister = (function (_super) {
     }
     $mol_lister.prototype.scroller = function () {
         var _this = this;
-        return new $jin2_prop(function () {
+        return this.atom(function () {
             var scroller = _this;
             while (scroller && !scroller['scrollTop'])
                 scroller = scroller.objectOwner;
@@ -1952,7 +2039,7 @@ var $mol_lister = (function (_super) {
     };
     $mol_lister.prototype.itemsVisible = function () {
         var _this = this;
-        return new $jin2_atom(function () {
+        return this.atom(function () {
             var items = _this.items().get();
             if (!items)
                 return items;
@@ -2074,24 +2161,24 @@ var $mol;
         function $mol_app_todo() {
             _super.apply(this, arguments);
         }
-        $mol_app_todo.prototype.title = function () { return new $jin2_atom(function () { return ["todos"]; }); };
+        $mol_app_todo.prototype.title = function () { return this.prop(function () { return ["todos"]; }); };
         $mol_app_todo.prototype.titler = function () {
             var _this = this;
-            var view = new $mol_block;
+            var view = new $mol_view;
             view.child = function () { return _this.title(); };
             return view;
         };
-        $mol_app_todo.prototype.allCompleted = function () { return new $jin2_atom(function () { return (false); }); };
+        $mol_app_todo.prototype.allCompleted = function () { return this.prop(function () { return (false); }); };
         $mol_app_todo.prototype.allCompleter = function () {
             var _this = this;
             var view = new $mol.$mol_checker;
             view.checked = function () { return _this.allCompleted(); };
             return view;
         };
-        $mol_app_todo.prototype.taskNewTitle = function () { return new $jin2_atom(function () { return (""); }); };
-        $mol_app_todo.prototype.searchQuery = function () { return new $jin2_atom(function () { return (""); }); };
-        $mol_app_todo.prototype.taskNewHint = function () { return new $jin2_atom(function () { return ("What needs to be done?"); }); };
-        $mol_app_todo.prototype.taskNewFocus = function () { return new $jin2_atom(function () { return (true); }); };
+        $mol_app_todo.prototype.taskNewTitle = function () { return this.prop(function () { return (""); }); };
+        $mol_app_todo.prototype.searchQuery = function () { return this.prop(function () { return (""); }); };
+        $mol_app_todo.prototype.taskNewHint = function () { return this.prop(function () { return ("What needs to be done?"); }); };
+        $mol_app_todo.prototype.taskNewFocus = function () { return this.prop(function () { return (true); }); };
         $mol_app_todo.prototype.adder = function () {
             var _this = this;
             var view = new $mol.$mol_stringer;
@@ -2103,7 +2190,7 @@ var $mol;
         };
         $mol_app_todo.prototype.headerContent = function () {
             var _this = this;
-            return new $jin2_atom(function () { return [_this.allCompleter().get(), _this.adder().get()]; });
+            return this.prop(function () { return [_this.allCompleter().get(), _this.adder().get()]; });
         };
         $mol_app_todo.prototype.header = function () {
             var _this = this;
@@ -2111,33 +2198,33 @@ var $mol;
             view.child = function () { return _this.headerContent(); };
             return view;
         };
-        $mol_app_todo.prototype.taskRows = function () { return new $jin2_atom(function () { return (null); }); };
+        $mol_app_todo.prototype.taskRows = function () { return this.prop(function () { return (null); }); };
         $mol_app_todo.prototype.body = function () {
             var _this = this;
             var view = new $mol.$mol_lister;
             view.items = function () { return _this.taskRows(); };
             return view;
         };
-        $mol_app_todo.prototype.pendingCount = function () { return new $jin2_atom(function () { return (0); }); };
+        $mol_app_todo.prototype.pendingCount = function () { return this.prop(function () { return (0); }); };
         $mol_app_todo.prototype.pendingCounter = function () {
             var _this = this;
-            var view = new $mol_block;
+            var view = new $mol_view;
             view.child = function () { return _this.pendingCount(); };
             return view;
         };
-        $mol_app_todo.prototype.pendingTail = function () { return new $jin2_atom(function () { return (" items left"); }); };
+        $mol_app_todo.prototype.pendingTail = function () { return this.prop(function () { return (" items left"); }); };
         $mol_app_todo.prototype.pendingMessage = function () {
             var _this = this;
-            return new $jin2_atom(function () { return [_this.pendingCounter().get(), _this.pendingTail().get()]; });
+            return this.prop(function () { return [_this.pendingCounter().get(), _this.pendingTail().get()]; });
         };
         $mol_app_todo.prototype.pendinger = function () {
             var _this = this;
-            var view = new $mol_block;
+            var view = new $mol_view;
             view.child = function () { return _this.pendingMessage(); };
             return view;
         };
-        $mol_app_todo.prototype.sanitizes = function () { return new $jin2_atom(function () { return (null); }); };
-        $mol_app_todo.prototype.sanitizerMessage = function () { return new $jin2_atom(function () { return ("Clear completed"); }); };
+        $mol_app_todo.prototype.sanitizes = function () { return this.prop(function () { return (null); }); };
+        $mol_app_todo.prototype.sanitizerMessage = function () { return this.prop(function () { return ("Clear completed"); }); };
         $mol_app_todo.prototype.sanitizer = function () {
             var _this = this;
             var view = new $mol.$mol_clicker;
@@ -2147,7 +2234,7 @@ var $mol;
         };
         $mol_app_todo.prototype.footerContent = function () {
             var _this = this;
-            return new $jin2_atom(function () { return [_this.pendinger().get(), _this.sanitizer().get()]; });
+            return this.prop(function () { return [_this.pendinger().get(), _this.sanitizer().get()]; });
         };
         $mol_app_todo.prototype.footer = function () {
             var _this = this;
@@ -2157,11 +2244,11 @@ var $mol;
         };
         $mol_app_todo.prototype.sections = function () {
             var _this = this;
-            return new $jin2_atom(function () { return [_this.titler().get(), _this.header().get(), _this.body().get(), _this.footer().get()]; });
+            return this.prop(function () { return [_this.titler().get(), _this.header().get(), _this.body().get(), _this.footer().get()]; });
         };
         $mol_app_todo.prototype.panel = function () {
             var _this = this;
-            var view = new $mol_block;
+            var view = new $mol_view;
             view.child = function () { return _this.sections(); };
             return view;
         };
@@ -2269,13 +2356,13 @@ var $mol_app_todo = (function (_super) {
     $mol_app_todo.prototype.tasksAll = function () {
         var _this = this;
         var state = $jin2_state_local.item(this.objectPath + '.tasksAll_');
-        return new $jin2_atom_list(function () { return (state.get() || []).map(function (id) { return _this.task(id).get(); }); }, function (next) {
+        return this.atom(function () { return (state.get() || []).map(function (id) { return _this.task(id).get(); }); }, function (next) {
             state.set(next.map(function (task) { return task.id().get(); }));
         });
     };
     $mol_app_todo.prototype.tasks = function () {
         var _this = this;
-        return new $jin2_atom(function () {
+        return this.atom(function () {
             var completed = $jin2_state_arg.item('completed').get();
             if (!completed || !completed.length) {
                 var tasks = _this.tasksAll().get();
@@ -2289,16 +2376,14 @@ var $mol_app_todo = (function (_super) {
             return tasks;
         });
     };
-    $mol_app_todo.prototype.task = function (id) {
-        return new $mol_app_todo_task;
-    };
+    $mol_app_todo.prototype.task = function (id) { return new $mol_app_todo_task; };
     $mol_app_todo.prototype.allCompleted = function () {
         var _this = this;
-        return new $jin2_atom(function () { return _this.pendingCount().get() === 0; }, function (next) { _this.tasksAll().get().forEach(function (task) { return task.completed().set(next); }); });
+        return this.atom(function () { return _this.pendingCount().get() === 0; }, function (next) { _this.tasksAll().get().forEach(function (task) { return task.completed().set(next); }); });
     };
     $mol_app_todo.prototype.groupsByCompleted = function () {
         var _this = this;
-        return new $jin2_atom(function () {
+        return this.atom(function () {
             var groups = { 'true': [], 'false': [] };
             _this.tasksAll().get().forEach(function (task) {
                 groups[task.completed().get() + ''].push(task);
@@ -2308,19 +2393,21 @@ var $mol_app_todo = (function (_super) {
     };
     $mol_app_todo.prototype.pendingCount = function () {
         var _this = this;
-        return new $jin2_atom(function () { return _this.groupsByCompleted().get()['false'].length; });
+        return this.prop(function () { return _this.groupsByCompleted().get()['false'].length; });
     };
     $mol_app_todo.prototype.completedCount = function () {
         var _this = this;
-        return new $jin2_atom(function () { return _this.groupsByCompleted().get()['true'].length; });
+        return this.prop(function () { return _this.groupsByCompleted().get()['true'].length; });
     };
     $mol_app_todo.prototype.pendingTail = function () {
         var _this = this;
-        return new $jin2_atom(function () { return (_this.pendingCount().get() === 1 ? ' item left' : ' items left'); });
+        return this.prop(function () {
+            return (_this.pendingCount().get() === 1 ? ' item left' : ' items left');
+        });
     };
     $mol_app_todo.prototype.taskNewTitle = function () {
         var _this = this;
-        return new $jin2_atom(function () { return ''; }, function (next) {
+        return this.prop('', function (next) {
             if (next) {
                 var tasks = _this.tasksAll().get();
                 var task = _this.task(tasks.length ? tasks[tasks.length - 1].id().get() + 1 : 1).get();
@@ -2328,12 +2415,11 @@ var $mol_app_todo = (function (_super) {
                 tasks = tasks.concat(task);
                 _this.tasksAll().set(tasks);
             }
-            return '';
         });
     };
     $mol_app_todo.prototype.taskRows = function () {
         var _this = this;
-        return new $jin2_atom(function () { return _this.tasks().get().map(function (task) { return _this.taskRow(task.id().get()).get(); }); }, function (next) { return null; });
+        return this.atom(function () { return _this.tasks().get().map(function (task) { return _this.taskRow(task.id().get()).get(); }); }, function (next) { return null; });
     };
     $mol_app_todo.prototype.taskRow = function (id) {
         var _this = this;
@@ -2344,7 +2430,7 @@ var $mol_app_todo = (function (_super) {
     };
     $mol_app_todo.prototype.taskDrops = function (id) {
         var _this = this;
-        return new $jin2_atom(function () { return null; }, function (next) {
+        return this.prop(null, function (next) {
             var task = _this.task(id).get();
             var tasks = _this.tasksAll().get();
             var index = tasks.indexOf(task);
@@ -2357,7 +2443,7 @@ var $mol_app_todo = (function (_super) {
     };
     $mol_app_todo.prototype.sanitizes = function () {
         var _this = this;
-        return new $jin2_atom(function () { return null; }, function (next) {
+        return this.prop(null, function (next) {
             var tasks = _this.tasksAll().get();
             tasks = tasks.filter(function (task) {
                 if (!task.completed().get())
@@ -2370,16 +2456,14 @@ var $mol_app_todo = (function (_super) {
     };
     $mol_app_todo.prototype.sanitizerMessage = function () {
         var _this = this;
-        return new $jin2_atom(function () { return 'Clear completed (' + _this.completedCount().get() + ')'; });
+        return this.prop(function () { return ("Clear completed (" + _this.completedCount().get() + ")"); });
     };
     $mol_app_todo.prototype.footerContent = function () {
         var _this = this;
-        return new $jin2_atom(function () {
-            return [
-                _this.pendingCount().get() ? _this.pendinger().get() : null,
-                _this.completedCount().get() ? _this.sanitizer().get() : null,
-            ];
-        });
+        return this.prop(function () { return [
+            _this.pendingCount().get() ? _this.pendinger().get() : null,
+            _this.completedCount().get() ? _this.sanitizer().get() : null,
+        ]; });
     };
     __decorate([
         $jin2_grab
@@ -2436,7 +2520,7 @@ var $mol_app_todo_task_view_row = (function (_super) {
     function $mol_app_todo_task_view_row() {
         _super.apply(this, arguments);
     }
-    $mol_app_todo_task_view_row.prototype.task = function () { return new $jin2_atom(); };
+    $mol_app_todo_task_view_row.prototype.task = function () { return this.prop(); };
     $mol_app_todo_task_view_row.prototype.taskCompleted = function () { return this.task().get().completed(); };
     $mol_app_todo_task_view_row.prototype.taskTitle = function () { return this.task().get().title(); };
     __decorate([
