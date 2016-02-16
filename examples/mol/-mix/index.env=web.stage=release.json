@@ -8,6 +8,7 @@
 					":priority": 0,
 					"mol": {
 						"": [
+							"mol/mol.jpg",
 							"mol/index.html",
 							"mol/README.md"
 						]
@@ -86,14 +87,20 @@
 							"jin2/grab/grab.ts"
 						]
 					},
+					"jin2/state/arg": {
+						":priority": 2,
+						"": [
+							"jin2/state/arg/arg.env=web.ts"
+						]
+					},
+					"jin2/state/local": {
+						":priority": 2,
+						"": [
+							"jin2/state/local/local.env=web.ts"
+						]
+					},
 					"": [
 						"mol/model/model.ts"
-					]
-				},
-				"jin2/state/local": {
-					":priority": 2,
-					"": [
-						"jin2/state/local/local.env=web.ts"
 					]
 				},
 				"mol/rower": {
@@ -158,12 +165,6 @@
 				"": [
 					"mol/lister/lister.view.tree",
 					"mol/lister/lister.view.ts"
-				]
-			},
-			"jin2/state/arg": {
-				":priority": 2,
-				"": [
-					"jin2/state/arg/arg.env=web.ts"
 				]
 			},
 			"": [

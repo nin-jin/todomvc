@@ -7,11 +7,11 @@ class $mol_app_todo_task extends $mol_model {
 	
 	@ $jin2_grab
 	data() { return this.atom(
-		() => $jin2_state_local.item( this.objectPath ).get() || { title : '' , completed : false } ,
+		() => this.persist().get() || { title : '' , completed : false } ,
 		( next ) => {
 			var prev = this.data().get()
 			if( next && prev ) for( var key in prev ) if(!( key in next )) next[ key ] = prev[ key ]
-			$jin2_state_local.item( this.objectPath ).set( next )
+			this.persist().set( next )
 			return next 
 		}
 	) }

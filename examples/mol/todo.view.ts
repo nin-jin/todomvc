@@ -4,7 +4,7 @@ class $mol_app_todo extends $mol.$mol_app_todo {
 	
 	@ $jin2_grab
 	tasksAll() {
-		var state = $jin2_state_local.item( this.objectPath + '.tasksAll_' )
+		var state = this.persist( 'tasksAll_' )
 		return this.atom<$mol_app_todo_task[]>(
 			() =>  ( state.get() || [] ).map( id => this.task( id ).get() ) ,
 			next => {
@@ -16,7 +16,7 @@ class $mol_app_todo extends $mol.$mol_app_todo {
 
 	@ $jin2_grab
 	tasks() { return this.atom( () => {
-		var completed = $jin2_state_arg.item( 'completed' ).get()
+		var completed = this.argument( 'completed' ).get()
 		if( !completed || !completed.length ) {
 			var tasks = this.tasksAll().get()
 		} else {

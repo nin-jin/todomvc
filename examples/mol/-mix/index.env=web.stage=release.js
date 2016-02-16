@@ -956,6 +956,110 @@ function $jin2_grab(prototype, name, descr) {
 }
 //# sourceMappingURL=grab.js.map
 ;
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var $jin2_state_arg = (function () {
+    function $jin2_state_arg() {
+    }
+    $jin2_state_arg.href = function () {
+        return new $jin2_atom(function () { return window.location.search + window.location.hash; }, function (next) { return document.location.href = next; });
+    };
+    $jin2_state_arg.dict = function () {
+        var _this = this;
+        return new $jin2_atom(function () {
+            var href = _this.href().get();
+            var chunks = href.split(/[\/\?#!&;]/g);
+            var params = {};
+            chunks.forEach(function (chunk) {
+                if (!chunk)
+                    return;
+                var vals = chunk.split(/[:=]/).map(decodeURIComponent);
+                params[vals.shift()] = vals;
+            });
+            return params;
+        }, function (next) {
+            _this.href().set(_this.make(next));
+        });
+    };
+    $jin2_state_arg.item = function (key) {
+        var _this = this;
+        return new $jin2_atom(function () {
+            return _this.dict().get()[key] || null;
+        }, function (next) {
+            var diff = {};
+            diff[key] = next;
+            _this.dict().set(diff);
+        });
+    };
+    $jin2_state_arg.override = function (next) {
+        var params = {};
+        var prev = this.dict().get();
+        for (var key in prev) {
+            if (key in next)
+                continue;
+            params[key] = prev[key];
+        }
+        for (var key in next) {
+            params[key] = next[key];
+        }
+        return this.make(params);
+    };
+    $jin2_state_arg.make = function (next) {
+        var chunks = [];
+        for (var key in next) {
+            if (!next[key])
+                continue;
+            chunks.push([key].concat(next[key]).map(encodeURIComponent).join('='));
+        }
+        return '#!' + chunks.join('/');
+    };
+    __decorate([
+        $jin2_grab
+    ], $jin2_state_arg, "href", null);
+    __decorate([
+        $jin2_grab
+    ], $jin2_state_arg, "dict", null);
+    __decorate([
+        $jin2_grab
+    ], $jin2_state_arg, "item", null);
+    return $jin2_state_arg;
+}());
+window.addEventListener('hashchange', function () { return $jin2_state_arg.href().update(); });
+//# sourceMappingURL=arg.env=web.js.map
+;
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var $jin2_state_local = (function () {
+    function $jin2_state_local() {
+    }
+    $jin2_state_local.item = function (key) {
+        return new $jin2_atom(function () { return JSON.parse(localStorage.getItem(key) || "null"); }, function (next) {
+            if (next == null) {
+                localStorage.removeItem(key);
+                return null;
+            }
+            else {
+                localStorage.setItem(key, JSON.stringify(next));
+                return next;
+            }
+        });
+    };
+    __decorate([
+        $jin2_grab
+    ], $jin2_state_local, "item", null);
+    return $jin2_state_local;
+}());
+window.addEventListener('storage', function (event) { return $jin2_state_local.item(event.key).update(); });
+//# sourceMappingURL=local.env=web.js.map
+;
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
@@ -986,41 +1090,18 @@ var $mol_model = (function (_super) {
     $mol_model.prototype.atom = function (pull, put, reap) {
         return new $jin2_atom(pull, put, reap);
     };
+    $mol_model.prototype.argument = function (path) {
+        return $jin2_state_arg.item(this.objectPath + (path ? '.' + path : ''));
+    };
+    $mol_model.prototype.persist = function (path) {
+        return $jin2_state_local.item(this.objectPath + '.' + (path ? '.' + path : ''));
+    };
     __decorate([
         $jin2_grab
     ], $mol_model, "app", null);
     return $mol_model;
 }($jin2_atom));
 //# sourceMappingURL=model.js.map
-;
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-var $jin2_state_local = (function () {
-    function $jin2_state_local() {
-    }
-    $jin2_state_local.item = function (key) {
-        return new $jin2_atom(function () { return JSON.parse(localStorage.getItem(key) || "null"); }, function (next) {
-            if (next == null) {
-                localStorage.removeItem(key);
-                return null;
-            }
-            else {
-                localStorage.setItem(key, JSON.stringify(next));
-                return next;
-            }
-        });
-    };
-    __decorate([
-        $jin2_grab
-    ], $jin2_state_local, "item", null);
-    return $jin2_state_local;
-}());
-window.addEventListener('storage', function (event) { return $jin2_state_local.item(event.key).update(); });
-//# sourceMappingURL=local.env=web.js.map
 ;
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -1151,42 +1232,44 @@ var $mol_view = (function (_super) {
     };
     $mol_view.prototype.child = function () { return this.prop(null); };
     $mol_view.prototype.childNodes = function () { return this.child(); };
-    $mol_view.prototype.attr = function () {
-        if (this._attr)
-            return this._attr;
-        this._attr = {};
+    $mol_view.prototype.attrNames = function () {
+        if (this.hasOwnProperty('_attrNames'))
+            return this._attrNames;
+        var names = this._attrNames = [];
         for (var key in this) {
-            if (typeof this[key] !== 'function')
-                continue;
             if (key.substring(0, 5) !== 'attr_')
                 continue;
-            this._attr[key.substring(5)] = this[key]();
-        }
-        return this._attr;
-    };
-    $mol_view.prototype.field = function () {
-        if (this._field)
-            return this._field;
-        this._field = {};
-        for (var key in this) {
             if (typeof this[key] !== 'function')
                 continue;
+            names.push(key.substring(5));
+        }
+        return names;
+    };
+    $mol_view.prototype.fieldNames = function () {
+        if (this.hasOwnProperty('_fieldNames'))
+            return this._fieldNames;
+        var names = this._fieldNames = [];
+        for (var key in this) {
             if (key.substring(0, 6) !== 'field_')
                 continue;
-            this._field[key.substring(6)] = this[key]();
-        }
-        return this._field;
-    };
-    $mol_view.prototype.event = function () {
-        var event = {};
-        for (var key in this) {
             if (typeof this[key] !== 'function')
                 continue;
+            names.push(key.substring(6));
+        }
+        return names;
+    };
+    $mol_view.prototype.eventNames = function () {
+        if (this.hasOwnProperty('_eventNames'))
+            return this._eventNames;
+        var names = this._eventNames = [];
+        for (var key in this) {
             if (key.substring(0, 6) !== 'event_')
                 continue;
-            event[key.substring(6)] = this[key]();
+            if (typeof this[key] !== 'function')
+                continue;
+            names.push(key.substring(6));
         }
-        return event;
+        return names;
     };
     $mol_view.prototype.node = function () {
         var _this = this;
@@ -1197,16 +1280,13 @@ var $mol_view = (function (_super) {
                 prev = document.createElementNS(_this.nameSpace().get(), _this.tagName().get());
                 prev.setAttribute('id', id);
             }
-            var router = prev;
-            var events = _this.event();
-            for (var name in events)
-                (function (name) {
-                    var prop = events[name];
-                    router.addEventListener(name, function (event) {
-                        prop.set(event);
-                        $jin2_atom.induce();
-                    }, false);
-                })(name);
+            Object.getPrototypeOf(_this).eventNames().forEach(function (name) {
+                var prop = _this['event_' + name]();
+                prev.addEventListener(name, function (event) {
+                    prop.set(event);
+                    $jin2_atom.induce();
+                });
+            });
             var proto1 = _this.objectOwner;
             while (proto1 && (proto1.constructor !== $mol_view) && (proto1.constructor !== Function)) {
                 var className = $jin2_object_path(proto1.constructor);
@@ -1223,16 +1303,6 @@ var $mol_view = (function (_super) {
                 prev.setAttribute(className.replace(/\$/g, ''), "");
                 proto2 = Object.getPrototypeOf(proto2);
             }
-            var onAttach = function (event) {
-                prev.removeEventListener('DOMNodeInserted', onAttach);
-                _this.version()['pull']();
-            };
-            if (prev.parentNode) {
-                setTimeout(onAttach);
-            }
-            else {
-                prev.addEventListener('DOMNodeInserted', onAttach);
-            }
             return prev;
         });
     };
@@ -1240,14 +1310,13 @@ var $mol_view = (function (_super) {
         var _this = this;
         var prop = this.atom(function () {
             var prev = _this.node().get();
-            var attrs = _this.attr();
-            for (var name in attrs) {
+            Object.getPrototypeOf(_this).attrNames().forEach(function (name) {
                 var p = prev.getAttribute(name);
-                var n = String(attrs[name].get());
+                var n = String(_this['attr_' + name]().get());
                 if (p !== n) {
                     prev.setAttribute(name, n);
                 }
-            }
+            });
             var childs = _this.childNodes().get();
             if (childs != null) {
                 var childViews = [].concat.apply([], [].concat(childs));
@@ -1279,6 +1348,7 @@ var $mol_view = (function (_super) {
                                     }
                                 }
                             }
+                            view.version().get();
                         }
                     }
                     else {
@@ -1298,16 +1368,15 @@ var $mol_view = (function (_super) {
                     prev.removeChild(currNode);
                 }
             }
-            var fields = _this.field();
-            for (var path in fields) {
+            Object.getPrototypeOf(_this).fieldNames().forEach(function (path) {
                 var names = path.split('_');
                 var obj = prev;
                 for (var i = 0; i < names.length - 1; ++i) {
                     if (names[i])
                         obj = obj[names[i]];
                 }
-                obj[names[names.length - 1]] = fields[path].get();
-            }
+                obj[names[names.length - 1]] = _this['field_' + path]().get();
+            });
             prev.removeAttribute('mol_view_error');
             return prev;
         });
@@ -1336,6 +1405,17 @@ function $mol_replace(Class) {
     window[Class.name] = Class;
     return Class;
 }
+document.addEventListener('DOMContentLoaded', function (event) {
+    var nodes = document.querySelectorAll('[mol_view_app]');
+    for (var i = nodes.length - 1; i >= 0; --i) {
+        var node = nodes[i];
+        var klass = node.getAttribute('mol_view_app');
+        node.id = klass + '.app_';
+        var app = $mol[klass].app();
+        app.node().get();
+        app.version().get();
+    }
+});
 //# sourceMappingURL=view.js.map
 ;
 var __extends = (this && this.__extends) || function (d, b) {
@@ -1534,7 +1614,8 @@ var $mol;
         $mol_stringer.prototype.event_keydown = function () { return this.presses(); };
         $mol_stringer.prototype.changes = function () { return this.prop(function () { return (null); }); };
         $mol_stringer.prototype.event_input = function () { return this.changes(); };
-        $mol_stringer.prototype.blurs = function () { return this.prop(function () { return (null); }); };
+        $mol_stringer.prototype.commits = function () { return this.prop(function () { return (null); }); };
+        $mol_stringer.prototype.blurs = function () { return this.commits(); };
         $mol_stringer.prototype.event_blur = function () { return this.blurs(); };
         __decorate([
             $jin2_grab
@@ -1562,7 +1643,7 @@ var $mol;
         ], $mol_stringer.prototype, "changes", null);
         __decorate([
             $jin2_grab
-        ], $mol_stringer.prototype, "blurs", null);
+        ], $mol_stringer.prototype, "commits", null);
         $mol_stringer = __decorate([
             $mol_replace
         ], $mol_stringer);
@@ -1594,6 +1675,7 @@ var $mol_stringer = (function (_super) {
             switch (next.keyCode) {
                 case 13:
                     _this.commits().set(next);
+                    next.target.blur();
                     break;
                 case 27:
                     _this.reverts().set(next);
@@ -1665,13 +1747,13 @@ var $mol_app_todo_task = (function (_super) {
     };
     $mol_app_todo_task.prototype.data = function () {
         var _this = this;
-        return this.atom(function () { return $jin2_state_local.item(_this.objectPath).get() || { title: '', completed: false }; }, function (next) {
+        return this.atom(function () { return _this.persist().get() || { title: '', completed: false }; }, function (next) {
             var prev = _this.data().get();
             if (next && prev)
                 for (var key in prev)
                     if (!(key in next))
                         next[key] = prev[key];
-            $jin2_state_local.item(_this.objectPath).set(next);
+            _this.persist().set(next);
             return next;
         });
     };
@@ -1859,11 +1941,11 @@ var $mol_scroller = (function (_super) {
         _super.apply(this, arguments);
     }
     $mol_scroller.prototype.scrollTop = function () {
-        var state = $jin2_state_local.item(this.objectPath + '.scrollTop_');
+        var state = this.persist('scrollTop_');
         return this.atom(function () { return Number(state.get()) || 0; }, function (next) { return (state.set(next), next); });
     };
     $mol_scroller.prototype.scrollLeft = function () {
-        var state = $jin2_state_local.item(this.objectPath + '.scrollLeft_');
+        var state = this.persist('scrollLeft_');
         return this.atom(function () { return Number(state.get()) || 0; }, function (next) { return (state.set(next), next); });
     };
     $mol_scroller.prototype.scrollHeight = function () {
@@ -1967,12 +2049,15 @@ var $mol;
         function $mol_lister() {
             _super.apply(this, arguments);
         }
-        $mol_lister.prototype.rowMinHeight = function () { return this.prop(function () { return (20); }); };
+        $mol_lister.prototype.rowMinHeight = function () { return this.prop(function () { return (40); }); };
         $mol_lister.prototype.items = function () { return this.prop(function () { return (null); }); };
         $mol_lister.prototype.itemsVisible = function () { return this.items(); };
         $mol_lister.prototype.child = function () { return this.itemsVisible(); };
+        $mol_lister.prototype.fillerHeight = function () { return this.prop(function () { return ("0"); }); };
         $mol_lister.prototype.filler = function () {
+            var _this = this;
             var view = new $mol.$mol_lister_filler;
+            view.height = function () { return _this.fillerHeight(); };
             return view;
         };
         __decorate([
@@ -1981,6 +2066,9 @@ var $mol;
         __decorate([
             $jin2_grab
         ], $mol_lister.prototype, "items", null);
+        __decorate([
+            $jin2_grab
+        ], $mol_lister.prototype, "fillerHeight", null);
         __decorate([
             $jin2_grab
         ], $mol_lister.prototype, "filler", null);
@@ -2050,10 +2138,12 @@ var $mol_lister = (function (_super) {
             var limit = (scroller['scrollTop']().get() + screen.height) / rowMinHeight;
             if (limit >= items.length)
                 return items;
-            var filler = _this.filler().get();
-            filler.height().set(rowMinHeight * (items.length - limit) + 'px');
-            return items.slice(0, limit).concat(filler);
+            return items.slice(0, limit).concat(_this.filler().get());
         });
+    };
+    $mol_lister.prototype.fillerHeight = function () {
+        var _this = this;
+        return this.atom(function () { return (_this.items().get().length - _this.itemsVisible().get().length) * _this.rowMinHeight().get() + 'px'; });
     };
     __decorate([
         $jin2_grab
@@ -2061,87 +2151,15 @@ var $mol_lister = (function (_super) {
     __decorate([
         $jin2_grab
     ], $mol_lister.prototype, "itemsVisible", null);
+    __decorate([
+        $jin2_grab
+    ], $mol_lister.prototype, "fillerHeight", null);
     $mol_lister = __decorate([
         $mol_replace
     ], $mol_lister);
     return $mol_lister;
 }($mol.$mol_lister));
 //# sourceMappingURL=lister.view.js.map
-;
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-var $jin2_state_arg = (function () {
-    function $jin2_state_arg() {
-    }
-    $jin2_state_arg.href = function () {
-        return new $jin2_atom(function () { return window.location.search + window.location.hash; }, function (next) { return document.location.href = next; });
-    };
-    $jin2_state_arg.dict = function () {
-        var _this = this;
-        return new $jin2_atom(function () {
-            var href = _this.href().get();
-            var chunks = href.split(/[\/\?#!&;]/g);
-            var params = {};
-            chunks.forEach(function (chunk) {
-                if (!chunk)
-                    return;
-                var vals = chunk.split(/[:=]/).map(decodeURIComponent);
-                params[vals.shift()] = vals;
-            });
-            return params;
-        }, function (next) {
-            _this.href().set(_this.make(next));
-        });
-    };
-    $jin2_state_arg.item = function (key) {
-        var _this = this;
-        return new $jin2_atom(function () {
-            return _this.dict().get()[key] || null;
-        }, function (next) {
-            var diff = {};
-            diff[key] = next;
-            _this.dict().set(diff);
-        });
-    };
-    $jin2_state_arg.override = function (next) {
-        var params = {};
-        var prev = this.dict().get();
-        for (var key in prev) {
-            if (key in next)
-                continue;
-            params[key] = prev[key];
-        }
-        for (var key in next) {
-            params[key] = next[key];
-        }
-        return this.make(params);
-    };
-    $jin2_state_arg.make = function (next) {
-        var chunks = [];
-        for (var key in next) {
-            if (!next[key])
-                continue;
-            chunks.push([key].concat(next[key]).map(encodeURIComponent).join('='));
-        }
-        return '#!' + chunks.join('/');
-    };
-    __decorate([
-        $jin2_grab
-    ], $jin2_state_arg, "href", null);
-    __decorate([
-        $jin2_grab
-    ], $jin2_state_arg, "dict", null);
-    __decorate([
-        $jin2_grab
-    ], $jin2_state_arg, "item", null);
-    return $jin2_state_arg;
-}());
-window.addEventListener('hashchange', function () { return $jin2_state_arg.href().update(); });
-//# sourceMappingURL=arg.env=web.js.map
 ;
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -2355,7 +2373,7 @@ var $mol_app_todo = (function (_super) {
     }
     $mol_app_todo.prototype.tasksAll = function () {
         var _this = this;
-        var state = $jin2_state_local.item(this.objectPath + '.tasksAll_');
+        var state = this.persist('tasksAll_');
         return this.atom(function () { return (state.get() || []).map(function (id) { return _this.task(id).get(); }); }, function (next) {
             state.set(next.map(function (task) { return task.id().get(); }));
         });
@@ -2363,7 +2381,7 @@ var $mol_app_todo = (function (_super) {
     $mol_app_todo.prototype.tasks = function () {
         var _this = this;
         return this.atom(function () {
-            var completed = $jin2_state_arg.item('completed').get();
+            var completed = _this.argument('completed').get();
             if (!completed || !completed.length) {
                 var tasks = _this.tasksAll().get();
             }

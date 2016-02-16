@@ -18,9 +18,8 @@
 	</head>
 	<body>
 		<script src="-mix/index.env=web.stage=release.js" charset="utf-8"></script>
+		<div mol_view_app="$mol_app_todo"></div>
 		<script>
-			document.body.appendChild( $mol_app_todo.app().get().node().get() )
-			
 			var TASK_COUNT = 100
 			
 			function start() {
