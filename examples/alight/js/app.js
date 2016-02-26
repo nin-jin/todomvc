@@ -6,6 +6,9 @@ function TodoApp(scope) {
     scope.allChecked = false;
     scope.todos = storage.loadAll();
 
+    scope.remainingCount = storage.getRemaining;
+    scope.completedCount = storage.getCompleted;
+
     scope.addTodo = function() {
         var todo = {
             id: storage.newId(),
@@ -42,22 +45,6 @@ function TodoApp(scope) {
         return scope.todos.filter(function(d) {
             return d.completed
         })
-    };
-
-    scope.remainingCount = function() {
-        var count = 0
-        scope.todos.forEach(function(d) {
-            if( !d.completed ) ++count
-        })
-        return count
-    };
-
-    scope.completedCount = function() {
-        var count = 0
-        scope.todos.forEach(function(d) {
-            if( d.completed ) ++count
-        })
-        return count
     };
 
     scope.clearCompletedTodos = function() {
