@@ -1,7 +1,5 @@
 'use strict';
 
-//alight.debug.scan = 1;
-
 alight.d.al.header = {
     scope: 'root',
     link: function(scope) {

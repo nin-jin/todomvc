@@ -1,0 +1,8 @@
+{
+  "name": "todomvc-angular-perf",
+  "version": "0.0.0",
+  "dependencies": {
+    "alight": "0.12",
+    "todomvc-common": "~0.1.9"
+  }
+}

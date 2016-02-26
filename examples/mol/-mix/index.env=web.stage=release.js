@@ -558,6 +558,9 @@ var $jin2_atom = (function (_super) {
         if (reap)
             this.reap_ = reap;
     }
+    $jin2_atom.prototype.prop = function (pull, put, reap) {
+        return new $jin2_atom(pull, put, reap);
+    };
     $jin2_atom.prototype.wrap = function (get, set) {
         var _this = this;
         return new $jin2_atom(get ? (function () { return get(_this.get()); }) : function () { return _this.get(); }, set ? function (next, prev) { return _this.set(set(next)); } : function (next, prev) { return _this.set(next, prev); });
@@ -857,6 +860,9 @@ var $jin2_atom_list = (function (_super) {
     function $jin2_atom_list() {
         _super.apply(this, arguments);
     }
+    $jin2_atom_list.prop = function (pull, put, reap) {
+        return new $jin2_atom_list(pull, put, reap);
+    };
     $jin2_atom_list.prototype.norm_ = function (next, prev) {
         if (!prev || !next)
             return next;
@@ -888,15 +894,11 @@ window.addEventListener('error', function (event) {
 ;
 function $jin2_grab(prototype, name, descr) {
     var makeValue = descr.value;
-    descr.value = function () {
-        var keys = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            keys[_i - 0] = arguments[_i];
-        }
-        var field = name + '(' + keys.map(function (key) { return JSON.stringify(key); }).join(',') + ')';
+    descr.value = function (key) {
+        var field = name + '(' + (JSON.stringify(key) || '') + ')';
         if (this[field])
             return this[field];
-        var obj = makeValue.apply(this, keys);
+        var obj = makeValue.call(this, key);
         obj.objectName = field;
         obj.objectOwner = this;
         return obj;
@@ -2095,7 +2097,7 @@ var $mol_lister = (function (_super) {
     };
     $mol_lister.prototype.itemsVisible = function () {
         var _this = this;
-        return this.atom(function () {
+        return $jin2_atom_list.prop(function () {
             var items = _this.items().get();
             if (!items)
                 return [];
@@ -2104,8 +2106,8 @@ var $mol_lister = (function (_super) {
     };
     $mol_lister.prototype.child = function () {
         var _this = this;
-        return this.atom(function () {
-            return [_this.fillerStart().get()].concat(_this.itemsVisible().get()).concat(_this.fillerEnd().get());
+        return this.prop(function () {
+            return [_this.fillerStart().get(), _this.itemsVisible().get(), _this.fillerEnd().get()];
         });
     };
     $mol_lister.prototype.fillerStartHeight = function () {
@@ -2274,13 +2276,14 @@ var $mol;
             return view;
         };
         $mol_app_todo.prototype.taskRows = function () { return this.prop(function () { return (null); }); };
-        $mol_app_todo.prototype.body = function () {
+        $mol_app_todo.prototype.bodier = function () {
             var _this = this;
             var view = new $mol.$mol_lister;
-            view.rowMinHeight = function () { return _this.prop(function () { return (58); }); };
+            view.rowMinHeight = function () { return _this.prop(function () { return (56); }); };
             view.items = function () { return _this.taskRows(); };
             return view;
         };
+        $mol_app_todo.prototype.footerVisible = function () { return this.prop(function () { return (true); }); };
         $mol_app_todo.prototype.pendingCount = function () { return this.prop(function () { return (0); }); };
         $mol_app_todo.prototype.pendingCounter = function () {
             var _this = this;
@@ -2333,6 +2336,7 @@ var $mol;
             view.child = function () { return _this.filterOptions(); };
             return view;
         };
+        $mol_app_todo.prototype.actionerVisible = function () { return this.prop(function () { return (true); }); };
         $mol_app_todo.prototype.sanitizes = function () { return this.prop(function () { return (null); }); };
         $mol_app_todo.prototype.sanitizerMessage = function () { return this.prop(function () { return ("Clear completed"); }); };
         $mol_app_todo.prototype.sanitizer = function () {
@@ -2342,19 +2346,27 @@ var $mol;
             view.child = function () { return _this.sanitizerMessage(); };
             return view;
         };
+        $mol_app_todo.prototype.actioner = function () {
+            var _this = this;
+            var view = new $mol.$mol_app_todo_ghost;
+            view.visible = function () { return _this.actionerVisible(); };
+            view.child = function () { return _this.sanitizer(); };
+            return view;
+        };
         $mol_app_todo.prototype.footerContent = function () {
             var _this = this;
-            return this.prop(function () { return [_this.pendinger().get(), _this.filter().get(), _this.sanitizer().get()]; });
+            return this.prop(function () { return [_this.pendinger().get(), _this.filter().get(), _this.actioner().get()]; });
         };
         $mol_app_todo.prototype.footer = function () {
             var _this = this;
-            var view = new $mol.$mol_rower;
+            var view = new $mol.$mol_app_todo_ghost;
+            view.visible = function () { return _this.footerVisible(); };
             view.child = function () { return _this.footerContent(); };
             return view;
         };
         $mol_app_todo.prototype.sections = function () {
             var _this = this;
-            return this.prop(function () { return [_this.titler().get(), _this.header().get(), _this.body().get(), _this.footer().get()]; });
+            return this.prop(function () { return [_this.header().get(), _this.bodier().get(), _this.footer().get()]; });
         };
         $mol_app_todo.prototype.panel = function () {
             var _this = this;
@@ -2362,7 +2374,10 @@ var $mol;
             view.child = function () { return _this.sections(); };
             return view;
         };
-        $mol_app_todo.prototype.child = function () { return this.panel(); };
+        $mol_app_todo.prototype.child = function () {
+            var _this = this;
+            return this.prop(function () { return [_this.titler().get(), _this.panel().get()]; });
+        };
         __decorate([
             $jin2_grab
         ], $mol_app_todo.prototype, "title", null);
@@ -2398,7 +2413,10 @@ var $mol;
         ], $mol_app_todo.prototype, "taskRows", null);
         __decorate([
             $jin2_grab
-        ], $mol_app_todo.prototype, "body", null);
+        ], $mol_app_todo.prototype, "bodier", null);
+        __decorate([
+            $jin2_grab
+        ], $mol_app_todo.prototype, "footerVisible", null);
         __decorate([
             $jin2_grab
         ], $mol_app_todo.prototype, "pendingCount", null);
@@ -2440,6 +2458,9 @@ var $mol;
         ], $mol_app_todo.prototype, "filter", null);
         __decorate([
             $jin2_grab
+        ], $mol_app_todo.prototype, "actionerVisible", null);
+        __decorate([
+            $jin2_grab
         ], $mol_app_todo.prototype, "sanitizes", null);
         __decorate([
             $jin2_grab
@@ -2447,6 +2468,9 @@ var $mol;
         __decorate([
             $jin2_grab
         ], $mol_app_todo.prototype, "sanitizer", null);
+        __decorate([
+            $jin2_grab
+        ], $mol_app_todo.prototype, "actioner", null);
         __decorate([
             $jin2_grab
         ], $mol_app_todo.prototype, "footerContent", null);
@@ -2459,12 +2483,34 @@ var $mol;
         __decorate([
             $jin2_grab
         ], $mol_app_todo.prototype, "panel", null);
+        __decorate([
+            $jin2_grab
+        ], $mol_app_todo.prototype, "child", null);
         $mol_app_todo = __decorate([
             $mol_replace
         ], $mol_app_todo);
         return $mol_app_todo;
     }($mol.$mol_scroller));
     $mol.$mol_app_todo = $mol_app_todo;
+})($mol || ($mol = {}));
+var $mol;
+(function ($mol) {
+    var $mol_app_todo_ghost = (function (_super) {
+        __extends($mol_app_todo_ghost, _super);
+        function $mol_app_todo_ghost() {
+            _super.apply(this, arguments);
+        }
+        $mol_app_todo_ghost.prototype.visible = function () { return this.prop(function () { return (true); }); };
+        $mol_app_todo_ghost.prototype.attr_mol_app_todo_ghost_visible = function () { return this.visible(); };
+        __decorate([
+            $jin2_grab
+        ], $mol_app_todo_ghost.prototype, "visible", null);
+        $mol_app_todo_ghost = __decorate([
+            $mol_replace
+        ], $mol_app_todo_ghost);
+        return $mol_app_todo_ghost;
+    }($mol_view));
+    $mol.$mol_app_todo_ghost = $mol_app_todo_ghost;
 })($mol || ($mol = {}));
 //# sourceMappingURL=todo.view.tree.js.map
 ;
@@ -2493,7 +2539,7 @@ var $mol_app_todo = (function (_super) {
     };
     $mol_app_todo.prototype.tasks = function () {
         var _this = this;
-        return this.atom(function () {
+        return $jin2_atom_list.prop(function () {
             var completed = _this.argument('completed').get();
             if (!completed || !completed.length) {
                 var tasks = _this.tasksAll().get();
@@ -2555,7 +2601,7 @@ var $mol_app_todo = (function (_super) {
     };
     $mol_app_todo.prototype.taskRows = function () {
         var _this = this;
-        return this.atom(function () { return _this.tasks().get().map(function (task) { return _this.taskRow(task.id().get()).get(); }); }, function (next) { return null; });
+        return $jin2_atom_list.prop(function () { return _this.tasks().get().map(function (task) { return _this.taskRow(task.id().get()).get(); }); }, function (next) { return null; });
     };
     $mol_app_todo.prototype.taskRow = function (id) {
         var _this = this;
@@ -2594,13 +2640,13 @@ var $mol_app_todo = (function (_super) {
         var _this = this;
         return this.prop(function () { return ("Clear completed (" + _this.completedCount().get() + ")"); });
     };
-    $mol_app_todo.prototype.footerContent = function () {
+    $mol_app_todo.prototype.footerVisible = function () {
         var _this = this;
-        return this.prop(function () { return [
-            _this.pendingCount().get() ? _this.pendinger().get() : null,
-            _this.tasksAll().get().length ? _this.filter().get() : null,
-            _this.completedCount().get() ? _this.sanitizer().get() : null,
-        ]; });
+        return this.prop(function () { return _this.tasksAll().get().length > 0; });
+    };
+    $mol_app_todo.prototype.actionerVisible = function () {
+        var _this = this;
+        return this.prop(function () { return _this.completedCount().get() > 0; });
     };
     $mol_app_todo.prototype.linkAll = function () { return $jin2_state_arg.link({ completed: null }); };
     $mol_app_todo.prototype.linkActive = function () { return $jin2_state_arg.link({ completed: false }); };
@@ -2644,12 +2690,6 @@ var $mol_app_todo = (function (_super) {
     __decorate([
         $jin2_grab
     ], $mol_app_todo.prototype, "sanitizes", null);
-    __decorate([
-        $jin2_grab
-    ], $mol_app_todo.prototype, "sanitizerMessage", null);
-    __decorate([
-        $jin2_grab
-    ], $mol_app_todo.prototype, "footerContent", null);
     $mol_app_todo = __decorate([
         $mol_replace
     ], $mol_app_todo);
