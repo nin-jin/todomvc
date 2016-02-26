@@ -8,12 +8,15 @@ alight.d.al.header = {
         scope.newTodo = ''
 
         scope.addTodo = function() {
-            scope.$parent.todos.push({
+            var todo = {
+                id: storage.newId(),
                 title: scope.newTodo,
                 completed: false
-            });
+            };
             scope.newTodo = '';
-            scope.$parent.save();
+            scope.$parent.todos.push(todo);
+            storage.saveItem(todo);
+            scope.$parent.filterTodos();
             scope.$parent.$scan()
         }
     }
@@ -62,12 +65,13 @@ function editComponent(todo, element, parentCD) {
 alight.d.al.task = {
     stopBinding: true,
     link: function(scope, element, _v, env) {
-        var label = element.querySelector('label');
         var input = element.querySelector('input');
+        var label = element.querySelector('label');
         var button = element.querySelector('button');
         var todo = scope.todo;
 
         label.innerText = todo.title;
+        input.checked = todo.completed;
         todoChecked(todo.completed);
 
         function todoChecked(checked) {
@@ -77,14 +81,15 @@ alight.d.al.task = {
         }
 
         button.addEventListener('click', function() {
-            scope.removeTodo(todo);
+            scope.todos.splice(scope.todos.indexOf(todo), 1);
+            storage.removeItem(todo);
             scope.$scan()
         })
 
         input.addEventListener('change', function(e) {
             todoChecked(e.target.checked);
+            storage.saveItem(todo);
             scope.$scan()
-            scope.save();
         })
 
         label.addEventListener('dblclick', function(e) {
@@ -95,7 +100,7 @@ alight.d.al.task = {
                 element.classList.remove('editing');
                 label.hidden = false;
                 label.innerText = todo.title;
-                scope.save();
+                storage.saveItem(todo)
             }, function() {
                 element.classList.remove('editing');
                 label.hidden = false;
@@ -109,87 +114,53 @@ function TodoApp(scope) {
     scope.newTodo = '';
     scope.editedTodo = null;
     scope.allChecked = false;
-
-    var t = null;
-    scope.save = function() {  // deferred save, don't test JSON.stringify
-        if(t) clearTimeout(t);
-        t = setTimeout(function() {
-            t = null;
-            localStorage['todos-alight'] = JSON.stringify( scope.todos )
-        }, 30)
-    }
-
-    scope.load = function() {
-        scope.todos = JSON.parse( localStorage['todos-alight'] || '[]' )
-    }
-
-    scope.load();
-
-    scope.markTodo = function(todo) {
-        scope.save()
-    };
+    scope.todos = storage.loadAll();
 
     scope.markAll = function(value) {
+        scope.todos = storage.loadAll();
         scope.todos.map(function(todo) {
-            todo.completed = value
-        })
-        scope.save()
+            todo.completed = value;
+            storage.saveItem(todo)
+        });
+        filterTodos()
     };
 
-    scope.removeTodo = function(todo) {
-        scope.todos.splice(scope.todos.indexOf(todo), 1);
-        scope.save()
-    };
+    scope.remainingCount = storage.getRemaining;
+    scope.completedCount = storage.getCompleted;
 
-    scope.filteredList = function() {
-        if(!scope.path) return scope.todos;
-        if(scope.path === 'active') return scope.todos.filter(function(d) {
-            return !d.completed
-        })
-        // completed
-        return scope.todos.filter(function(d) {
-            return d.completed
-        })
-    };
+    scope.path = '';
+    scope.filteredList = [];
+    scope.filterTodos = filterTodos;
+    filterTodos();
 
-    scope.remainingCount = function() {
-        var count = 0
-        scope.todos.forEach(function(d) {
-            if( !d.completed ) ++count
-        })
-        return count
-    };
+    scope.goPath = function(path) {
+        scope.path = path;
+        filterTodos();
+    }
 
-    scope.completedCount = function() {
-        var count = 0
-        scope.todos.forEach(function(d) {
-            if( d.completed ) ++count
-        })
-        return count
-    };
+    function filterTodos(){
+        if(!scope.path) scope.filteredList = scope.todos
+        else if(scope.path === 'active') {
+            scope.filteredList = scope.todos.filter(function(d) {
+                return !d.completed
+            })
+        } else {
+            // completed
+            scope.filteredList = scope.todos.filter(function(d) {
+                return d.completed
+            })
+        }
+    }
 
     scope.clearCompletedTodos = function() {
         scope.todos = scope.todos.filter(function(d) {
-            return !d.completed
+            if(d.completed) {
+                storage.removeItem(d);
+                return false
+            }
+            return true
         })
-        scope.save()
-    };
-
-    var prevTitle = '';
-    scope.editTodo = function(todo) {
-        scope.editedTodo = todo;
-        prevTitle = todo.title
-    };
-
-    scope.doneEditing = function(todo) {
-        scope.editedTodo = null
-        scope.save()
-    };
-
-    scope.revertEditing = function(e, todo) {
-        todo.title = prevTitle;
-        e.value = prevTitle;
-        e.blur()
+        filterTodos();
     };
 
 };
