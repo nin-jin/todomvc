@@ -6,12 +6,8 @@ function TodoApp(scope) {
     scope.allChecked = false;
 
     var t = null;
-    scope.save = function() {  // deferred save, don't test JSON.stringify
-        if(t) clearTimeout(t);
-        t = setTimeout(function() {
-            t = null;
-            localStorage['todos-alight'] = JSON.stringify( scope.todos )
-        }, 30)
+    scope.save = function() {
+        localStorage['todos-alight'] = JSON.stringify( scope.todos )
     }
 
     scope.load = function() {

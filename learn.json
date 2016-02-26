@@ -6,6 +6,9 @@
 		"examples": [{
 			"name": "Example",
 			"url": "examples/alight"
+		},{
+			"name": "Example Optimized",
+			"url": "examples/alight-opt"
 		}],
 		"link_groups": []
 	},

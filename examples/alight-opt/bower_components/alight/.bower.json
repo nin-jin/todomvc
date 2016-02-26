@@ -1,0 +1,34 @@
+{
+  "name": "alight",
+  "version": "0.12.1",
+  "authors": [
+    "Oleg Nechaev <lega911@gmail.com>"
+  ],
+  "description": "Web framework with MVC model",
+  "main": [
+    "alight.js"
+  ],
+  "ignore": [
+    "README.md"
+  ],
+  "moduleType": [
+    "amd",
+    "node",
+    "globals"
+  ],
+  "keywords": [
+    "alight",
+    "javascript"
+  ],
+  "license": "MIT",
+  "homepage": "http://angularlight.org/",
+  "_release": "0.12.1",
+  "_resolution": {
+    "type": "version",
+    "tag": "v0.12.1",
+    "commit": "9024920cdee6b778f94916ff23e7d17dba8d69a8"
+  },
+  "_source": "git://github.com/lega911/alight.git",
+  "_target": "0.12",
+  "_originalSource": "alight"
+}
