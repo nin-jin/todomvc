@@ -32,7 +32,7 @@ var blackList = [
     'examples/backbone_marionette' , 'http://todomvcapp.meteor.com' , 'examples/ractive' , 'examples/reagent',
     'examples/riotjs' , 'examples/sammyjs' , 'examples/sapui5' , 'examples/serenadejs' , 'examples/socketstream/README.md',
     'examples/somajs' , 'examples/somajs_require' , 'examples/thorax' , 'examples/thorax_lumbar/public' , 'examples/troopjs_require' ,
-    'examples/jsblocks' , 'examples/extjs_deftjs' , 'examples/alight-opt'
+    'examples/jsblocks' , 'examples/extjs_deftjs'
 ]
 
 var TASK_COUNT = 100
@@ -48,7 +48,7 @@ function formatTestName(suiteName, testName) {
 
 function createUIForSuites(suites, onstep, onrun) {
     var control = document.createElement('nav');
-    
+
     var button = runButton = document.createElement('input');
     button.type = 'checkbox'
     button.onclick = function(){
@@ -66,7 +66,7 @@ function createUIForSuites(suites, onstep, onrun) {
     button.textContent = 'Run';
     button.onclick = onrun;
     control.appendChild(button);
-        
+
     var ol = document.createElement('ol');
     var checkboxes = [];
     for (var suiteIndex = 0; suiteIndex < suites.length; suiteIndex++) {
@@ -115,14 +115,14 @@ function startTest() {
 
     var match = window.location.search.match(/[\?&]r=(\d+)/),
         timesToRun = match ? +(match[1]) : 1
-    
+
     var Suites = []
-    
+
     var xhr = new XMLHttpRequest
     xhr.open( 'get' , '../learn.json' ,false )
     xhr.send()
     var learn = JSON.parse( xhr.responseText )
-    
+
     for( var fw in learn ) {
         if( fw === 'templates' ) continue
         var info = learn[fw]
@@ -145,35 +145,35 @@ function startTest() {
                         function step( ) {
                             newTodo.value = 'Something to do ' + i;
                             newTodo.textContent = 'Something to do ' + i;
-                            
+
                             var keyupEvent = document.createEvent('Event');
                             keyupEvent.initEvent('input', true, true);
                             keyupEvent.propertyValue = 'Something to do ' + i;
                             newTodo.dispatchEvent(keyupEvent)
-                            
+
                             var keyupEvent = document.createEvent('Event');
                             keyupEvent.initEvent('keydown', true, true);
                             keyupEvent.keyCode = 13;
                             newTodo.dispatchEvent(keyupEvent)
-                            
+
                             var keyupEvent = document.createEvent('Event');
                             keyupEvent.initEvent('keypress', true, true);
                             keyupEvent.keyCode = 13;
                             newTodo.dispatchEvent(keyupEvent)
-                            
+
                             var keyupEvent = document.createEvent('Event');
                             keyupEvent.initEvent('keyup', true, true);
                             keyupEvent.keyCode = 13;
                             newTodo.dispatchEvent(keyupEvent)
-                            
+
                             var keyupEvent = document.createEvent('Event');
                             keyupEvent.initEvent('submit', true, true);
                             newTodo.parentNode.dispatchEvent(keyupEvent)
-                            
+
                             var keyupEvent = document.createEvent('Event');
                             keyupEvent.initEvent('change', true, true);
                             newTodo.dispatchEvent(keyupEvent)
-                            
+
                             if( i ++ < TASK_COUNT ) setImmediate(step,0)
                             else done()
                         }
@@ -182,7 +182,7 @@ function startTest() {
                         step()
                         function step( ) {
                             var toggleButton = contentDocument.querySelector('#toggle-all:not(:checked),.toggle-all:not(:checked),.todo__toggle-all:not(:checked),[mol_app_todo_allcompleter][mol_checker_checked="false"]');
-                            
+
                             if( toggleButton ) {
                                 toggleButton.click()
                                 setImmediate(step,0)
@@ -195,7 +195,7 @@ function startTest() {
                         step()
                         function step( ) {
                             var deleteButton = contentDocument.querySelector('.destroy,[mol_app_todo_task_view_row_dropper]');
-                            
+
                             if( deleteButton ) {
                                 deleteButton.click()
                                 setImmediate(step,0)
@@ -288,7 +288,7 @@ function startTest() {
         // pre.textContent = runs.length + ' runs average:\n' + res + '\n'
         //     + 'See console output for more details.'
         // document.body.appendChild(pre)
-		
+
 		drawChart(results)
     }
 }
