@@ -71,6 +71,7 @@
 	        align-self: stretch;
 	outline: 1px solid #000000;
 	outline: 1px solid rgba( 0 , 0 , 0 , .1 );
+	will-change: scroll-position;
 }
 
 @media print {
@@ -265,6 +266,10 @@
 	z-index: -1;
 }
 
+[mol_lister] {
+	will-change: contents;
+}
+
 [mol_linker] {
 	cursor: pointer;
 	text-decoration: inherit;
@@ -329,7 +334,7 @@
 	outline: none;
 }
 
-[mol_app_todo_taskrow] {
+[mol_app_todo_task_view_row] {
 	outline: 1px solid #ededed;
 	display: -webkit-box;
 	display: -webkit-flex;

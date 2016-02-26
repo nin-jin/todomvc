@@ -558,6 +558,9 @@ var $jin2_atom = (function (_super) {
         if (reap)
             this.reap_ = reap;
     }
+    $jin2_atom.prototype.prop = function (pull, put, reap) {
+        return new $jin2_atom(pull, put, reap);
+    };
     $jin2_atom.prototype.wrap = function (get, set) {
         var _this = this;
         return new $jin2_atom(get ? (function () { return get(_this.get()); }) : function () { return _this.get(); }, set ? function (next, prev) { return _this.set(set(next)); } : function (next, prev) { return _this.set(next, prev); });
@@ -857,6 +860,9 @@ var $jin2_atom_list = (function (_super) {
     function $jin2_atom_list() {
         _super.apply(this, arguments);
     }
+    $jin2_atom_list.prop = function (pull, put, reap) {
+        return new $jin2_atom_list(pull, put, reap);
+    };
     $jin2_atom_list.prototype.norm_ = function (next, prev) {
         if (!prev || !next)
             return next;
@@ -2091,7 +2097,7 @@ var $mol_lister = (function (_super) {
     };
     $mol_lister.prototype.itemsVisible = function () {
         var _this = this;
-        return this.atom(function () {
+        return $jin2_atom_list.prop(function () {
             var items = _this.items().get();
             if (!items)
                 return [];
@@ -2100,8 +2106,8 @@ var $mol_lister = (function (_super) {
     };
     $mol_lister.prototype.child = function () {
         var _this = this;
-        return this.atom(function () {
-            return [_this.fillerStart().get()].concat(_this.itemsVisible().get()).concat(_this.fillerEnd().get());
+        return this.prop(function () {
+            return [_this.fillerStart().get(), _this.itemsVisible().get(), _this.fillerEnd().get()];
         });
     };
     $mol_lister.prototype.fillerStartHeight = function () {
@@ -2533,7 +2539,7 @@ var $mol_app_todo = (function (_super) {
     };
     $mol_app_todo.prototype.tasks = function () {
         var _this = this;
-        return this.atom(function () {
+        return $jin2_atom_list.prop(function () {
             var completed = _this.argument('completed').get();
             if (!completed || !completed.length) {
                 var tasks = _this.tasksAll().get();
@@ -2595,7 +2601,7 @@ var $mol_app_todo = (function (_super) {
     };
     $mol_app_todo.prototype.taskRows = function () {
         var _this = this;
-        return this.atom(function () { return _this.tasks().get().map(function (task) { return _this.taskRow(task.id().get()).get(); }); }, function (next) { return null; });
+        return $jin2_atom_list.prop(function () { return _this.tasks().get().map(function (task) { return _this.taskRow(task.id().get()).get(); }); }, function (next) { return null; });
     };
     $mol_app_todo.prototype.taskRow = function (id) {
         var _this = this;

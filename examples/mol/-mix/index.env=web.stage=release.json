@@ -124,7 +124,7 @@
 				]
 			},
 			"mol/app/todo/task": {
-				":priority": 1,
+				":priority": 0,
 				"mol/rower": {
 					":priority": 0,
 					"": [
@@ -164,6 +164,7 @@
 			"mol/lister": {
 				":priority": 0,
 				"": [
+					"mol/lister/lister.css",
 					"mol/lister/lister.view.tree",
 					"mol/lister/lister.view.ts"
 				]
