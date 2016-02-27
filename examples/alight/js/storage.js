@@ -35,7 +35,9 @@ window.storage = (function(){
                 }
             }
             count = result.length;
-            return result;
+            return result.sort(function(a, b) {
+                return a.id - b.id
+            });
         },
         saveItem: function(todo) {
             localStorage.setItem(prefix + todo.id, JSON.stringify(todo));
