@@ -4,41 +4,36 @@ function TodoApp(scope) {
     scope.newTodo = '';
     scope.editedTodo = null;
     scope.allChecked = false;
+    scope.todos = storage.loadAll();
 
-    var t = null;
-    scope.save = function() {
-        localStorage['todos-alight'] = JSON.stringify( scope.todos )
-    }
-
-    scope.load = function() {
-        scope.todos = JSON.parse( localStorage['todos-alight'] || '[]' )
-    }
-
-    scope.load();
+    scope.remainingCount = storage.getRemaining;
+    scope.completedCount = storage.getCompleted;
 
     scope.addTodo = function() {
-        scope.todos.push({
+        var todo = {
+            id: storage.newId(),
             title: scope.newTodo,
             completed: false
-        });
+        };
+        scope.todos.push(todo);
+        storage.saveItem(todo)
         scope.newTodo = '';
-        scope.save()
     };
 
     scope.markTodo = function(todo) {
-        scope.save()
+        storage.saveItem(todo)
     };
 
     scope.markAll = function(value) {
         scope.todos.map(function(todo) {
-            todo.completed = value
+            todo.completed = value;
+            storage.saveItem(todo)
         })
-        scope.save()
     };
 
     scope.removeTodo = function(todo) {
         scope.todos.splice(scope.todos.indexOf(todo), 1);
-        scope.save()
+        storage.removeItem(todo)
     };
 
     scope.filteredList = function() {
@@ -52,27 +47,14 @@ function TodoApp(scope) {
         })
     };
 
-    scope.remainingCount = function() {
-        var count = 0
-        scope.todos.forEach(function(d) {
-            if( !d.completed ) ++count
-        })
-        return count
-    };
-
-    scope.completedCount = function() {
-        var count = 0
-        scope.todos.forEach(function(d) {
-            if( d.completed ) ++count
-        })
-        return count
-    };
-
     scope.clearCompletedTodos = function() {
         scope.todos = scope.todos.filter(function(d) {
-            return !d.completed
+            if(d.completed) {
+                storage.removeItem(d);
+                return false
+            }
+            return true
         })
-        scope.save()
     };
 
     var prevTitle = '';
@@ -82,8 +64,8 @@ function TodoApp(scope) {
     };
 
     scope.doneEditing = function(todo) {
-        scope.editedTodo = null
-        scope.save()
+        scope.editedTodo = null;
+        storage.saveItem(todo)
     };
 
     scope.revertEditing = function(todo, element) {
