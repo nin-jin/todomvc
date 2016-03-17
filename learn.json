@@ -471,6 +471,16 @@
 			}]
 		}]
 	},
+	"citojs": {
+		"name": "citojs",
+		"description": "citojs",
+		"homepage": "https://github.com/joelrich/citojs",
+		"examples": [{
+			"name": "Example",
+			"url": "examples/citojs"
+		}],
+		"link_groups": []
+	},
 	"closure": {
 		"name": "Closure Tools",
 		"description": "The Closure Tools project is an effort by Google engineers to open source the tools used in many of Google's sites and web applications for use by the wider Web development community.",

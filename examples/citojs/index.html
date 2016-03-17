@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8"/>
+	<title>citojs :: TodoMVC</title>
+
+	<link rel="stylesheet" href="http://todomvc.com/examples/backbone/node_modules/todomvc-common/base.css"/>
+	<link rel="stylesheet" href="http://todomvc.com/examples/backbone/node_modules/todomvc-app-css/index.css"/>
+</head>
+<body>
+
+	<div id="app-canvas"></div>
+
+	<script src="https://jspm.io/system@0.19.js"></script>
+	<script>
+		System.config({
+			map: {
+				'citojs': 'https://rawgit.com/joelrich/citojs/master/dist/cito.js',
+				'todomvc': './src/app'
+			},
+			transpiler: 'babel',
+			packages: {'': {defaultExtension: 'js'}}
+		});
+
+		System.import('todomvc').then(function (App) {
+			var STORE_KEY = 'todomvc:citojs';
+			var pid;
+			var _storeData;
+
+			window.app = App.boot(window['app-canvas'], {
+				get() {
+					return JSON.parse(localStorage.getItem(STORE_KEY));
+				},
+
+				set(data) {
+					_storeData = data;
+					if (!pid) {
+						pid = setTimeout(function () {
+							pid = null;
+							localStorage.setItem(STORE_KEY, JSON.stringify(_storeData));
+						}, 0);
+					}
+				}
+			});
+		});
+	</script>
+
+</body>
+</html>
