@@ -3,11 +3,15 @@ $mol_app_todo_1_demo : $mol_app_todo
 	taskNewTitle : =
 	taskRows : null
 	pendingCount : 0
+	footerVisible : false
 
 $mol_app_todo_2_demo : $mol_app_todo
 	allCompleted : false
 	taskNewTitle : =Create new
 	pendingCount : 1
+	footerVisible : true
+	actionerVisible : true
+	completedCount : 1
 	taskRows
 		< row1 : $mol_app_todo_task_view_row
 			taskCompleted : true

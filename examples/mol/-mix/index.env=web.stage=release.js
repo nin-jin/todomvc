@@ -355,6 +355,7 @@ var $jin2_atom = (function (_super) {
         if (!this.slaves)
             this.slaves = new Set;
         this.slaves.add(slave);
+        $jin2_atom._planReap.delete(this);
     };
     $jin2_atom.prototype.dislead = function (slave) {
         if (!this.slaves)
@@ -477,6 +478,7 @@ var $jin2_atom = (function (_super) {
         this.schedule();
     };
     $jin2_atom.collect = function (atom) {
+        this._planReap.add(atom);
         this.schedule();
     };
     $jin2_atom.schedule = function () {
@@ -505,6 +507,9 @@ var $jin2_atom = (function (_super) {
                 atom.pull();
             }
             var someReaped = false;
+            this._planReap.forEach(function (atom) {
+                someReaped = atom.reap();
+            });
             if (!someReaped)
                 break;
         }
@@ -2236,6 +2241,7 @@ var $mol_app_todo = (function (_super) {
     $mol_app_todo.prototype.taskDrops = function (id) {
         var _this = this;
         return this.prop(null, function (next) {
+            _this.task(id).set(null);
             var tasks = _this.tasksAll().get().filter(function (task) { return task.id !== id; });
             _this.tasksAll().set(tasks);
         });
