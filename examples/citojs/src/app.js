@@ -2,12 +2,23 @@ import cito from 'citojs';
 import Task from './task';
 import template from './template';
 
+const PATH_TO_FILTER = {
+	'/': 'all',
+	'/active': 'active',
+	'/completed': 'completed'
+};
+
 class App {
-	constructor(el, storage) {
+	constructor(el, storage, router) {
 		this.el = el;
 		this.storage = storage;
+		this.router = router;
 		this.todos = Task.map(storage.get() || []);
-		this.filter = 'all';
+
+		this.router.on('change', path => {
+			this.filter = PATH_TO_FILTER[path] || PATH_TO_FILTER['/'];
+			this.render();
+		});
 	}
 
 	getActiveTodos() {
@@ -78,6 +89,6 @@ class App {
 	}
 }
 
-export function boot(el, storage) {
-	return new App(el, storage).render();
+export function boot(el, storage, router) {
+	return new App(el, storage, router).render();
 }
