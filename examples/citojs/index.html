@@ -4,18 +4,19 @@
 	<meta charset="utf-8"/>
 	<title>citojs :: TodoMVC</title>
 
-	<link rel="stylesheet" href="http://todomvc.com/examples/backbone/node_modules/todomvc-common/base.css"/>
-	<link rel="stylesheet" href="http://todomvc.com/examples/backbone/node_modules/todomvc-app-css/index.css"/>
+	<link rel="stylesheet" href="node_modules/todomvc-common/base.css">
+	<link rel="stylesheet" href="node_modules/todomvc-app-css/index.css">
 </head>
-<body>
+<body data-framework="citojs">
 
 	<div id="app-canvas"></div>
 
+	<script src="node_modules/todomvc-common/base.js"></script>
 	<script src="https://jspm.io/system@0.19.js"></script>
 	<script>
 		System.config({
 			map: {
-				'citojs': './cito.js',
+				'citojs': './src/cito.js',
 				'todomvc': './src/app'
 			},
 			transpiler: 'babel',
