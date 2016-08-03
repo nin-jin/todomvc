@@ -23,26 +23,19 @@
 			packages: {'': {defaultExtension: 'js'}}
 		});
 
-		System.import('todomvc').then(function (App) {
-			var STORE_KEY = 'todomvc:citojs';
-			var pid;
-			var _storeData;
+		Promise.all([
+			System.import('todomvc'),
+			System.import('./src/storage'),
+			System.import('./src/router')
+		]).then(function ([App, storage, router]) {
+			const app = App.boot(
+				window['app-canvas'],
+				storage.createLocal('todomvc'),
+				router.useHash('#')
+			);
 
-			window.app = App.boot(window['app-canvas'], {
-				get() {
-					return JSON.parse(localStorage.getItem(STORE_KEY));
-				},
-
-				set(data) {
-					_storeData = data;
-					if (!pid) {
-						pid = setTimeout(function () {
-							pid = null;
-							localStorage.setItem(STORE_KEY, JSON.stringify(_storeData));
-						}, 0);
-					}
-				}
-			});
+			// Debug
+			window.app = app;
 		});
 	</script>
 
