@@ -1,35 +1,33 @@
-[mol_app_todo] {
-	margin: 0;
-	height: 100%;
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: flex-start;
+[mol_app_todomvc] {
 }
 
-[mol_app_todo_allcompleter] {
-	outline: none;
-	padding: 0;
+[mol_app_todomvc_allCompleter] {
 	width: 2rem;
 	height: 2rem;
-	margin: .5rem;
-}
-[mol_app_todo_allcompleter]:before {
-	content: '❯';
 	transform: rotate( 90deg );
+	opacity: .5;
+	padding: 0;
+}
+[mol_app_todomvc_allCompleter]:before {
+	display: none;
 }
 
-[mol_app_todo_adder] {
+[mol_app_todomvc_allCompleter][mol_checker_checked] {
+	opacity: 1;
+}
+
+[mol_app_todomvc_adder] {
+	margin: 0;
 	padding: 1rem;
-	outline: none;
-	flex: 1;
+	box-shadow: none;
 }
 
-[mol_app_todo_task_view_row] {
-	outline: 1px solid #ededed;
-	display: flex;
-	align-items: center;
+[mol_app_todomvc_lister] {
 	font-size: 1.5rem;
+}
+
+[mol_app_todomvc_taskRow] {
+	padding: 0;
 }
 
 [mol_app_todo_task_view_row_completer] {
@@ -47,29 +45,29 @@
 
 [mol_app_todo_task_view_row_title] {
 	padding: 1rem;
-	outline: none;
+	box-shadow: none;
 	flex: 1;
 }
 
-[mol_app_todo_task_view_row_dropper] {
-	padding: 1rem;
-	outline: none;
+[mol_app_todomvc_taskRow_dropper] {
+	box-shadow: none;
 }
 
-[mol_app_todo_panel] {
+[mol_app_todomvc_paneler] {
 	box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.2), 0 25px 50px 0 rgba(0, 0, 0, 0.1);
-	width: 100%;
 	max-width: 34rem;
 	background: white;
+	display: flex;
+	flex-direction: column;
+	margin: 0 auto 2rem;
 }
 
-[mol_app_todo_header] {
+[mol_app_todomvc_header] {
 	font-size: 1.5rem;
-	align-items: center;
-	outline: 1px solid #ededed;
+	padding: 0;
 }
 
-[mol_app_todo_titler] {
+[mol_app_todomvc_titler] {
 	padding: 1rem;
 	font-size: 6rem;
 	font-weight: 100;
@@ -78,22 +76,24 @@
 	text-rendering: optimizeLegibility;
 }
 
-[mol_app_todo_task_view_row_completed="true"] [mol_app_todo_task_view_row_title] {
+[mol_app_todomvc_taskRow_titler] {
+	box-shadow: none;
+	background: none;
+}
+
+[mol_app_todomvc_taskRow_completed] [mol_app_todomvc_taskRow_titler] {
 	color: #a9a9a9;
 	text-decoration: line-through;
 }
 
-[mol_app_todo_task_view_row]:not(:hover) [mol_app_todo_task_view_row_dropper] {
-	display: none;
+[mol_app_todomvc_taskRow]:not(:hover) [mol_app_todomvc_taskRow_dropper]:not(:focus) {
+	opacity: 0;
 }
 
-[mol_app_todo_footer] {
+[mol_app_todomvc_footer] {
 	color: #777;
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
 	font-size: .85rem;
-	outline: 1px solid #ededed;
+	border-top: 1px solid #ededed;
 	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.2), 0 8px 0 -3px #f6f6f6, 0 9px 1px -3px rgba(0, 0, 0, 0.2), 0 16px 0 -6px #f6f6f6, 0 17px 2px -6px rgba(0, 0, 0, 0.2);
 }
 
@@ -101,28 +101,29 @@
 	padding: .5rem;
 }
 
-[mol_app_todo_pendingCounter] {
+[mol_app_todomvc_pendingCounter] {
 	margin: 0 .2rem;
 	font-weight: bold;
 	display: inline;
 }
 
-[mol_app_todo_filter] {
-	padding: .5rem;
+[mol_app_todomvc_filter] {
+	padding: 0;
+	flex: 0 1 auto;
 }
 
 [mol_app_todo_actioner] {
 	padding: .5rem;	
 }
 
-[mol_app_todo_sanitizer] {
+[mol_app_todomvc_sanitizer] {
 	flex: 0 1 auto;
 }
 
-[mol_app_todo_ghost_visible="false"] {
+[mol_app_todomvc_ghost]:not([mol_app_todomvc_ghost_visible]) {
 	visibility: hidden;
 }
 
-[mol_app_todo_footer][mol_app_todo_ghost_visible="false"] {
+[mol_app_todo_footer]:not([mol_app_todomvc_ghost_visible]) {
 	display: none;
 }
