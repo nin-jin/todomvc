@@ -725,12 +725,15 @@ var $mol_log;
     }
     $mol_log.filter = filter;
 })($mol_log || ($mol_log = {}));
-//# sourceMappingURL=log.js.map
+//# sourceMappingURL=log.env=web.js.map
 ;
 var $mol_object = (function () {
     function $mol_object() {
         this['destroyed()'] = false;
     }
+    $mol_object.prototype.Class = function () {
+        return this.constructor;
+    };
     $mol_object.objectPath = function () {
         return this['name']
             || this['displayName']
@@ -2572,6 +2575,17 @@ var $;
         return $mol_rower;
     }($mol_viewer));
     $.$mol_rower = $mol_rower;
+})($ || ($ = {}));
+var $;
+(function ($) {
+    var $mol_rower_sub = (function (_super) {
+        __extends($mol_rower_sub, _super);
+        function $mol_rower_sub() {
+            _super.apply(this, arguments);
+        }
+        return $mol_rower_sub;
+    }($mol_viewer));
+    $.$mol_rower_sub = $mol_rower_sub;
 })($ || ($ = {}));
 //# sourceMappingURL=rower.view.tree.js.map
 ;
