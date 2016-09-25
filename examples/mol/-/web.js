@@ -1,5 +1,10 @@
 function $mol_merge_dict(target, source) {
-    return Object.assign({}, target, source);
+    var result = {};
+    for (var key in target)
+        result[key] = target[key];
+    for (var key in source)
+        result[key] = source[key];
+    return result;
 }
 //dict.js.map
 ;
@@ -760,330 +765,6 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-var localStorage = localStorage || {};
-var $mol_state_local = (function (_super) {
-    __extends($mol_state_local, _super);
-    function $mol_state_local() {
-        _super.apply(this, arguments);
-    }
-    $mol_state_local.value = function (key) {
-        var diff = [];
-        for (var _i = 1; _i < arguments.length; _i++) {
-            diff[_i - 1] = arguments[_i];
-        }
-        if (diff[0] === void 0)
-            return JSON.parse(localStorage.getItem(key) || 'null');
-        if (diff[0] === null)
-            localStorage.removeItem(key);
-        else
-            localStorage.setItem(key, JSON.stringify(diff[0]));
-        return diff[0];
-    };
-    $mol_state_local.prototype.prefix = function () { return ''; };
-    $mol_state_local.prototype.value = function (key) {
-        var diff = [];
-        for (var _i = 1; _i < arguments.length; _i++) {
-            diff[_i - 1] = arguments[_i];
-        }
-        return $mol_state_local.value.apply($mol_state_local, [this.prefix() + '.' + key].concat(diff));
-    };
-    __decorate([
-        $mol_prop()
-    ], $mol_state_local, "value", null);
-    return $mol_state_local;
-}($mol_object));
-//local.js.map
-;
-window.addEventListener('storage', function (event) { return $mol_state_local.value(event.key, void 0); });
-//local.web.js.map
-;
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-var $mol_state_session = (function (_super) {
-    __extends($mol_state_session, _super);
-    function $mol_state_session() {
-        _super.apply(this, arguments);
-    }
-    $mol_state_session.value = function (key) {
-        var diff = [];
-        for (var _i = 1; _i < arguments.length; _i++) {
-            diff[_i - 1] = arguments[_i];
-        }
-        if (diff[0] === void 0)
-            return JSON.parse(sessionStorage.getItem(key) || 'null');
-        if (diff[0] === null)
-            localStorage.removeItem(key);
-        else
-            sessionStorage.setItem(key, JSON.stringify(diff[0]));
-        return diff[0];
-    };
-    $mol_state_session.prototype.prefix = function () { return ''; };
-    $mol_state_session.prototype.value = function (key) {
-        var diff = [];
-        for (var _i = 1; _i < arguments.length; _i++) {
-            diff[_i - 1] = arguments[_i];
-        }
-        return $mol_state_local.value.apply($mol_state_local, [this.prefix() + '.' + key].concat(diff));
-    };
-    __decorate([
-        $mol_prop()
-    ], $mol_state_session, "value", null);
-    return $mol_state_session;
-}($mol_object));
-//session.js.map
-;
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-var $mol_state_history = (function (_super) {
-    __extends($mol_state_history, _super);
-    function $mol_state_history() {
-        _super.apply(this, arguments);
-    }
-    $mol_state_history.value = function (key) {
-        var diff = [];
-        for (var _i = 1; _i < arguments.length; _i++) {
-            diff[_i - 1] = arguments[_i];
-        }
-        return $mol_state_session.value.apply($mol_state_session, ["$mol_state_history:" + this.id() + ":" + key].concat(diff));
-    };
-    $mol_state_history.prototype.prefix = function () { return ''; };
-    $mol_state_history.prototype.value = function (key) {
-        var diff = [];
-        for (var _i = 1; _i < arguments.length; _i++) {
-            diff[_i - 1] = arguments[_i];
-        }
-        return $mol_state_local.value.apply($mol_state_local, [this.prefix() + '.' + key].concat(diff));
-    };
-    $mol_state_history.id = function () {
-        var diff = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            diff[_i - 0] = arguments[_i];
-        }
-        if (history.state)
-            return history.state;
-        var id = Date.now().toString(16);
-        history.replaceState(id, document.title, document.location.href);
-        return id;
-    };
-    __decorate([
-        $mol_prop()
-    ], $mol_state_history, "value", null);
-    __decorate([
-        $mol_prop()
-    ], $mol_state_history, "id", null);
-    return $mol_state_history;
-}($mol_object));
-//history.js.map
-;
-window.addEventListener('hashchange', function (event) { return $mol_state_history.id(void 0); });
-//history.web.js.map
-;
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-var $mol_state_arg = (function (_super) {
-    __extends($mol_state_arg, _super);
-    function $mol_state_arg(prefix) {
-        if (prefix === void 0) { prefix = ''; }
-        _super.call(this);
-        this.prefix = prefix;
-    }
-    $mol_state_arg.href = function () {
-        var diff = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            diff[_i - 0] = arguments[_i];
-        }
-        if (diff[0] !== void 0)
-            history.replaceState(history.state, document.title, diff[0]);
-        return window.location.search + window.location.hash;
-    };
-    $mol_state_arg.dict = function () {
-        var diff = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            diff[_i - 0] = arguments[_i];
-        }
-        if (diff[0] !== void 0)
-            this.href(this.make(diff[0]));
-        var href = this.href();
-        var chunks = href.split(/[\/\?#!&;]/g);
-        var params = {};
-        chunks.forEach(function (chunk) {
-            if (!chunk)
-                return;
-            var vals = chunk.split(/[:=]/).map(decodeURIComponent);
-            params[vals.shift()] = vals;
-        });
-        return params;
-    };
-    $mol_state_arg.value = function (key) {
-        var diff = [];
-        for (var _i = 1; _i < arguments.length; _i++) {
-            diff[_i - 1] = arguments[_i];
-        }
-        if (diff[0] === void 0)
-            return this.dict()[key] || null;
-        this.href(this.link((_a = {}, _a[key] = diff[0], _a)));
-        return diff[0];
-        var _a;
-    };
-    $mol_state_arg.link = function (next) {
-        var params = {};
-        var prev = this.dict();
-        for (var key in prev) {
-            params[key] = prev[key];
-        }
-        for (var key in next) {
-            params[key] = next[key];
-        }
-        return this.make(params);
-    };
-    $mol_state_arg.make = function (next) {
-        var chunks = [];
-        for (var key in next) {
-            if (null == next[key])
-                continue;
-            chunks.push([key].concat(next[key]).map(encodeURIComponent).join('='));
-        }
-        return '#' + chunks.join('#');
-    };
-    $mol_state_arg.prototype.value = function (key) {
-        var diff = [];
-        for (var _i = 1; _i < arguments.length; _i++) {
-            diff[_i - 1] = arguments[_i];
-        }
-        return $mol_state_arg.value.apply($mol_state_arg, [this.prefix + key].concat(diff));
-    };
-    $mol_state_arg.prototype.sub = function (postfix) {
-        return new $mol_state_arg(this.prefix + postfix + '.');
-    };
-    $mol_state_arg.prototype.link = function (next) {
-        var prefix = this.prefix;
-        var dict = {};
-        for (var key in next) {
-            dict[prefix + key] = next[key];
-        }
-        return $mol_state_arg.link(dict);
-    };
-    __decorate([
-        $mol_prop()
-    ], $mol_state_arg, "href", null);
-    __decorate([
-        $mol_prop()
-    ], $mol_state_arg, "dict", null);
-    __decorate([
-        $mol_prop()
-    ], $mol_state_arg, "value", null);
-    return $mol_state_arg;
-}($mol_object));
-window.addEventListener('hashchange', function (event) { return $mol_state_arg.href(void 0); });
-//arg.web.js.map
-;
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
-var $mol_model = (function (_super) {
-    __extends($mol_model, _super);
-    function $mol_model() {
-        _super.apply(this, arguments);
-    }
-    $mol_model.history = function (key) {
-        var diff = [];
-        for (var _i = 1; _i < arguments.length; _i++) {
-            diff[_i - 1] = arguments[_i];
-        }
-        return $mol_state_history.value.apply($mol_state_history, [this + "." + key].concat(diff));
-    };
-    $mol_model.prototype.history = function (key) {
-        var diff = [];
-        for (var _i = 1; _i < arguments.length; _i++) {
-            diff[_i - 1] = arguments[_i];
-        }
-        return $mol_state_history.value.apply($mol_state_history, [this + "." + key].concat(diff));
-    };
-    $mol_model.session = function (key) {
-        var diff = [];
-        for (var _i = 1; _i < arguments.length; _i++) {
-            diff[_i - 1] = arguments[_i];
-        }
-        return $mol_state_session.value.apply($mol_state_session, [this + "." + key].concat(diff));
-    };
-    $mol_model.prototype.session = function (key) {
-        var diff = [];
-        for (var _i = 1; _i < arguments.length; _i++) {
-            diff[_i - 1] = arguments[_i];
-        }
-        return $mol_state_session.value.apply($mol_state_session, [this + "." + key].concat(diff));
-    };
-    $mol_model.local = function (key) {
-        var diff = [];
-        for (var _i = 1; _i < arguments.length; _i++) {
-            diff[_i - 1] = arguments[_i];
-        }
-        return $mol_state_local.value.apply($mol_state_local, [this + "." + key].concat(diff));
-    };
-    $mol_model.prototype.local = function (key) {
-        var diff = [];
-        for (var _i = 1; _i < arguments.length; _i++) {
-            diff[_i - 1] = arguments[_i];
-        }
-        return $mol_state_local.value.apply($mol_state_local, [this + "." + key].concat(diff));
-    };
-    $mol_model.argument = function (key) {
-        var diff = [];
-        for (var _i = 1; _i < arguments.length; _i++) {
-            diff[_i - 1] = arguments[_i];
-        }
-        return $mol_state_arg.value.apply($mol_state_arg, [this + "." + key].concat(diff));
-    };
-    $mol_model.prototype.argument = function () {
-        var owner = this.objectOwner();
-        if (owner instanceof $mol_model)
-            return owner.argument();
-        return new $mol_state_arg();
-    };
-    return $mol_model;
-}($mol_object));
-//model.js.map
-;
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
 var $mol_viewer_selection = (function (_super) {
     __extends($mol_viewer_selection, _super);
     function $mol_viewer_selection() {
@@ -1220,6 +901,16 @@ var $mol_viewer = (function (_super) {
     }
     $mol_viewer.root = function (id) {
         return new this;
+    };
+    $mol_viewer.statePrefix = function () {
+        return '';
+    };
+    $mol_viewer.prototype.statePrefix = function () {
+        var owner = this.objectOwner();
+        return owner ? owner.statePrefix() : '';
+    };
+    $mol_viewer.prototype.stateKey = function (postfix) {
+        return this.statePrefix() + postfix;
     };
     $mol_viewer.prototype.context = function () {
         var diff = [];
@@ -1407,7 +1098,7 @@ var $mol_viewer = (function (_super) {
         $mol_prop()
     ], $mol_viewer, "root", null);
     return $mol_viewer;
-}($mol_model));
+}($mol_object));
 //viewer.js.map
 ;
 document.addEventListener('DOMContentLoaded', function (event) {
@@ -1692,6 +1383,106 @@ var __extends = (this && this.__extends) || function (d, b) {
     function __() { this.constructor = d; }
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var $mol_state_arg = (function (_super) {
+    __extends($mol_state_arg, _super);
+    function $mol_state_arg(prefix) {
+        if (prefix === void 0) { prefix = ''; }
+        _super.call(this);
+        this.prefix = prefix;
+    }
+    $mol_state_arg.href = function () {
+        var diff = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            diff[_i - 0] = arguments[_i];
+        }
+        if (diff[0] !== void 0)
+            history.replaceState(history.state, document.title, diff[0]);
+        return window.location.search + window.location.hash;
+    };
+    $mol_state_arg.dict = function () {
+        var diff = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            diff[_i - 0] = arguments[_i];
+        }
+        if (diff[0] !== void 0)
+            this.href(this.make(diff[0]));
+        var href = this.href();
+        var chunks = href.split(/[\/\?#!&;]/g);
+        var params = {};
+        chunks.forEach(function (chunk) {
+            if (!chunk)
+                return;
+            var vals = chunk.split('=').map(decodeURIComponent);
+            params[vals.shift()] = vals.join('=');
+        });
+        return params;
+    };
+    $mol_state_arg.value = function (key) {
+        var diff = [];
+        for (var _i = 1; _i < arguments.length; _i++) {
+            diff[_i - 1] = arguments[_i];
+        }
+        if (diff[0] === void 0)
+            return this.dict()[key] || null;
+        this.href(this.link((_a = {}, _a[key] = diff[0], _a)));
+        return diff[0];
+        var _a;
+    };
+    $mol_state_arg.link = function (next) {
+        return this.make($mol_merge_dict(this.dict(), next));
+    };
+    $mol_state_arg.make = function (next) {
+        var chunks = [];
+        for (var key in next) {
+            if (null == next[key])
+                continue;
+            chunks.push([key].concat(next[key]).map(encodeURIComponent).join('='));
+        }
+        return '#' + chunks.join('#');
+    };
+    $mol_state_arg.prototype.value = function (key) {
+        var diff = [];
+        for (var _i = 1; _i < arguments.length; _i++) {
+            diff[_i - 1] = arguments[_i];
+        }
+        return $mol_state_arg.value.apply($mol_state_arg, [this.prefix + key].concat(diff));
+    };
+    $mol_state_arg.prototype.sub = function (postfix) {
+        return new $mol_state_arg(this.prefix + postfix + '.');
+    };
+    $mol_state_arg.prototype.link = function (next) {
+        var prefix = this.prefix;
+        var dict = {};
+        for (var key in next) {
+            dict[prefix + key] = next[key];
+        }
+        return $mol_state_arg.link(dict);
+    };
+    __decorate([
+        $mol_prop()
+    ], $mol_state_arg, "href", null);
+    __decorate([
+        $mol_prop()
+    ], $mol_state_arg, "dict", null);
+    __decorate([
+        $mol_prop()
+    ], $mol_state_arg, "value", null);
+    return $mol_state_arg;
+}($mol_object));
+window.addEventListener('hashchange', function (event) { return $mol_state_arg.href(void 0); });
+//arg.web.js.map
+;
+var __extends = (this && this.__extends) || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+};
 var $;
 (function ($) {
     var $mol_linker = (function (_super) {
@@ -1718,8 +1509,8 @@ var $;
                 "mol_linker_current": function () { return _this.current(); },
             });
         };
-        $mol_linker.prototype.patch = function () {
-            return null;
+        $mol_linker.prototype.arg = function () {
+            return ({});
         };
         return $mol_linker;
     }($mol_viewer));
@@ -1748,10 +1539,14 @@ var $;
                 _super.apply(this, arguments);
             }
             $mol_linker.prototype.uri = function () {
-                return this.argument().link(this.patch());
+                var patch = {};
+                var arg = this.arg();
+                for (var key in arg)
+                    patch[key] = arg[key]();
+                return new $mol_state_arg(this.statePrefix()).link(patch);
             };
             $mol_linker.prototype.current = function () {
-                return this.uri() === this.argument().link({});
+                return this.uri() === $mol_state_arg.link({});
             };
             __decorate([
                 $mol_prop()
@@ -1855,6 +1650,98 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
+var localStorage = localStorage || {};
+var $mol_state_local = (function (_super) {
+    __extends($mol_state_local, _super);
+    function $mol_state_local() {
+        _super.apply(this, arguments);
+    }
+    $mol_state_local.value = function (key) {
+        var diff = [];
+        for (var _i = 1; _i < arguments.length; _i++) {
+            diff[_i - 1] = arguments[_i];
+        }
+        if (diff[0] === void 0)
+            return JSON.parse(localStorage.getItem(key) || 'null');
+        if (diff[0] === null)
+            localStorage.removeItem(key);
+        else
+            localStorage.setItem(key, JSON.stringify(diff[0]));
+        return diff[0];
+    };
+    $mol_state_local.prototype.prefix = function () { return ''; };
+    $mol_state_local.prototype.value = function (key) {
+        var diff = [];
+        for (var _i = 1; _i < arguments.length; _i++) {
+            diff[_i - 1] = arguments[_i];
+        }
+        return $mol_state_local.value.apply($mol_state_local, [this.prefix() + '.' + key].concat(diff));
+    };
+    __decorate([
+        $mol_prop()
+    ], $mol_state_local, "value", null);
+    return $mol_state_local;
+}($mol_object));
+//local.js.map
+;
+window.addEventListener('storage', function (event) { return $mol_state_local.value(event.key, void 0); });
+//local.web.js.map
+;
+var __extends = (this && this.__extends) || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+};
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var $mol_state_session = (function (_super) {
+    __extends($mol_state_session, _super);
+    function $mol_state_session() {
+        _super.apply(this, arguments);
+    }
+    $mol_state_session.value = function (key) {
+        var diff = [];
+        for (var _i = 1; _i < arguments.length; _i++) {
+            diff[_i - 1] = arguments[_i];
+        }
+        if (diff[0] === void 0)
+            return JSON.parse(sessionStorage.getItem(key) || 'null');
+        if (diff[0] === null)
+            localStorage.removeItem(key);
+        else
+            sessionStorage.setItem(key, JSON.stringify(diff[0]));
+        return diff[0];
+    };
+    $mol_state_session.prototype.prefix = function () { return ''; };
+    $mol_state_session.prototype.value = function (key) {
+        var diff = [];
+        for (var _i = 1; _i < arguments.length; _i++) {
+            diff[_i - 1] = arguments[_i];
+        }
+        return $mol_state_local.value.apply($mol_state_local, [this.prefix() + '.' + key].concat(diff));
+    };
+    __decorate([
+        $mol_prop()
+    ], $mol_state_session, "value", null);
+    return $mol_state_session;
+}($mol_object));
+//session.js.map
+;
+var __extends = (this && this.__extends) || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+};
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
 var $;
 (function ($) {
     var $mol_scroller = (function (_super) {
@@ -1942,14 +1829,14 @@ var $;
                 for (var _i = 0; _i < arguments.length; _i++) {
                     diff[_i - 0] = arguments[_i];
                 }
-                return this.session.apply(this, ['scrollTop()'].concat(diff)) || 0;
+                return $mol_state_session.value.apply($mol_state_session, [this.objectPath() + '.scrollTop()'].concat(diff)) || 0;
             };
             $mol_scroller.prototype.scrollLeft = function () {
                 var diff = [];
                 for (var _i = 0; _i < arguments.length; _i++) {
                     diff[_i - 0] = arguments[_i];
                 }
-                return this.session.apply(this, ['scrollLeft()'].concat(diff)) || 0;
+                return $mol_state_session.value.apply($mol_state_session, [this.objectPath() + '.scrollLeft()'].concat(diff)) || 0;
             };
             $mol_scroller.prototype.eventScroll = function () {
                 var diff = [];
@@ -2261,7 +2148,9 @@ var $;
             }
             return (diff[0] !== void 0) ? diff[0] : new $.$mol_linker().setup(function (__) {
                 __.childs = function () { return [].concat("All"); };
-                __.patch = function () { return ({ "completed": null }); };
+                __.arg = function () { return ({
+                    "completed": function () { return null; },
+                }); };
             });
         };
         $mol_app_todomvc.prototype.filterActive = function () {
@@ -2271,7 +2160,9 @@ var $;
             }
             return (diff[0] !== void 0) ? diff[0] : new $.$mol_linker().setup(function (__) {
                 __.childs = function () { return [].concat("Active"); };
-                __.patch = function () { return ({ "completed": false }); };
+                __.arg = function () { return ({
+                    "completed": function () { return false; },
+                }); };
             });
         };
         $mol_app_todomvc.prototype.filterCompleted = function () {
@@ -2281,7 +2172,9 @@ var $;
             }
             return (diff[0] !== void 0) ? diff[0] : new $.$mol_linker().setup(function (__) {
                 __.childs = function () { return [].concat("Completed"); };
-                __.patch = function () { return ({ "completed": true }); };
+                __.arg = function () { return ({
+                    "completed": function () { return true; },
+                }); };
             });
         };
         $mol_app_todomvc.prototype.filterOptions = function () {
@@ -2712,11 +2605,10 @@ var $;
                 for (var _i = 0; _i < arguments.length; _i++) {
                     diff[_i - 0] = arguments[_i];
                 }
-                return this.local.apply(this, ['taskIds()'].concat(diff)) || [];
+                return $mol_state_local.value.apply($mol_state_local, [this.stateKey('taskIds')].concat(diff)) || [];
             };
             $mol_app_todomvc.prototype.argCompleted = function () {
-                var val = this.argument().value('completed');
-                return val && val[0];
+                return $mol_state_arg.value(this.stateKey('completed'));
             };
             $mol_app_todomvc.prototype.groupsByCompleted = function () {
                 var groups = { 'true': [], 'false': [] };
@@ -2780,12 +2672,13 @@ var $;
                 for (var _i = 1; _i < arguments.length; _i++) {
                     diff[_i - 1] = arguments[_i];
                 }
+                var key = this.stateKey("task=" + id);
                 if (diff[0] === void 0)
-                    return this.local("task(" + id + ")") || { title: '', completed: false };
+                    return $mol_state_local.value(key) || { title: '', completed: false };
                 var task = diff[0];
                 if (task && diff[1])
                     task = $mol_merge_dict(this.task(id), diff[0]);
-                this.local("task(" + id + ")", task);
+                $mol_state_local.value(key, task);
                 return task || void 0;
             };
             $mol_app_todomvc.prototype.taskCompleted = function (index) {
