@@ -1205,19 +1205,7 @@ var $;
             return childs;
         };
         $mol_viewer.prototype.heightMinimal = function () {
-            var min = 0;
-            var childs = this.childs();
-            if (!childs)
-                return null;
-            for (var _i = 0, childs_1 = childs; _i < childs_1.length; _i++) {
-                var child = childs_1[_i];
-                if (child instanceof $mol_viewer) {
-                    var childMin = child.heightMinimal();
-                    if (min < childMin)
-                        min = childMin;
-                }
-            }
-            return min || null;
+            return 0;
         };
         $mol_viewer.prototype.DOMNode = function () {
             var diff = [];
@@ -1276,8 +1264,8 @@ var $;
             var childs = this.childsVisible();
             if (childs != null) {
                 var nextNode = node.firstChild;
-                for (var _a = 0, childs_2 = childs; _a < childs_2.length; _a++) {
-                    var view = childs_2[_a];
+                for (var _a = 0, childs_1 = childs; _a < childs_1.length; _a++) {
+                    var view = childs_1[_a];
                     if (view == null) {
                     }
                     else if (typeof view === 'object') {
@@ -1313,8 +1301,8 @@ var $;
                     nextNode = currNode.nextSibling;
                     node.removeChild(currNode);
                 }
-                for (var _b = 0, childs_3 = childs; _b < childs_3.length; _b++) {
-                    var view = childs_3[_b];
+                for (var _b = 0, childs_2 = childs; _b < childs_2.length; _b++) {
+                    var view = childs_2[_b];
                     if (view instanceof $mol_viewer)
                         view.DOMTree();
                 }
@@ -2137,7 +2125,7 @@ var $;
             _super.apply(this, arguments);
         }
         $mol_scroller.prototype.heightMinimal = function () {
-            return null;
+            return 0;
         };
         $mol_scroller.prototype.scrollTop = function () {
             return 0;
