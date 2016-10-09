@@ -1205,7 +1205,19 @@ var $;
             return childs;
         };
         $mol_viewer.prototype.heightMinimal = function () {
-            return 0;
+            var min = 0;
+            var childs = this.childs();
+            if (!childs)
+                return null;
+            for (var _i = 0, childs_1 = childs; _i < childs_1.length; _i++) {
+                var child = childs_1[_i];
+                if (child instanceof $mol_viewer) {
+                    var childMin = child.heightMinimal();
+                    if (min < childMin)
+                        min = childMin;
+                }
+            }
+            return min || null;
         };
         $mol_viewer.prototype.DOMNode = function () {
             var diff = [];
@@ -1264,8 +1276,8 @@ var $;
             var childs = this.childsVisible();
             if (childs != null) {
                 var nextNode = node.firstChild;
-                for (var _a = 0, childs_1 = childs; _a < childs_1.length; _a++) {
-                    var view = childs_1[_a];
+                for (var _a = 0, childs_2 = childs; _a < childs_2.length; _a++) {
+                    var view = childs_2[_a];
                     if (view == null) {
                     }
                     else if (typeof view === 'object') {
@@ -1301,8 +1313,8 @@ var $;
                     nextNode = currNode.nextSibling;
                     node.removeChild(currNode);
                 }
-                for (var _b = 0, childs_2 = childs; _b < childs_2.length; _b++) {
-                    var view = childs_2[_b];
+                for (var _b = 0, childs_3 = childs; _b < childs_3.length; _b++) {
+                    var view = childs_3[_b];
                     if (view instanceof $mol_viewer)
                         view.DOMTree();
                 }
@@ -1335,8 +1347,17 @@ var $;
             }
             return node;
         };
-        $mol_viewer.prototype.attr = function () { return { 'mol_viewer_error': function () { return false; } }; };
-        $mol_viewer.prototype.field = function () { return {}; };
+        $mol_viewer.prototype.attr = function () {
+            return {
+                'mol_viewer_error': function () { return false; }
+            };
+        };
+        $mol_viewer.prototype.field = function () {
+            var _this = this;
+            return {
+                'style.minHeight': function () { return _this.heightMinimal() + 'px'; }
+            };
+        };
         $mol_viewer.prototype.event = function () { return {}; };
         $mol_viewer.prototype.focused = function () {
             return $.$mol_viewer_selection.focused().indexOf(this.DOMNode()) !== -1;
@@ -2115,6 +2136,9 @@ var $;
         function $mol_scroller() {
             _super.apply(this, arguments);
         }
+        $mol_scroller.prototype.heightMinimal = function () {
+            return null;
+        };
         $mol_scroller.prototype.scrollTop = function () {
             return 0;
         };
@@ -2505,9 +2529,6 @@ var $;
                 __.rows = function () { return _this.taskRows(); };
             });
         };
-        $mol_app_todomvc.prototype.footerVisible = function () {
-            return false;
-        };
         $mol_app_todomvc.prototype.pendingMessage = function () {
             return this.text("pendingMessage");
         };
@@ -2612,10 +2633,12 @@ var $;
             for (var _i = 0; _i < arguments.length; _i++) {
                 diff[_i - 0] = arguments[_i];
             }
-            return (diff[0] !== void 0) ? diff[0] : new $.$mol_app_todomvc_ghost().setup(function (__) {
-                __.visible = function () { return _this.footerVisible(); };
+            return (diff[0] !== void 0) ? diff[0] : new $.$mol_viewer().setup(function (__) {
                 __.childs = function () { return _this.footerContent(); };
             });
+        };
+        $mol_app_todomvc.prototype.panels = function () {
+            return [].concat(this.header(), this.lister(), this.footer());
         };
         $mol_app_todomvc.prototype.paneler = function () {
             var _this = this;
@@ -2624,7 +2647,7 @@ var $;
                 diff[_i - 0] = arguments[_i];
             }
             return (diff[0] !== void 0) ? diff[0] : new $.$mol_lister().setup(function (__) {
-                __.rows = function () { return [].concat(_this.header(), _this.lister(), _this.footer()); };
+                __.rows = function () { return _this.panels(); };
             });
         };
         $mol_app_todomvc.prototype.pager = function () {
@@ -2757,26 +2780,6 @@ var $;
         return $mol_app_todomvc;
     }($.$mol_scroller));
     $.$mol_app_todomvc = $mol_app_todomvc;
-})($ || ($ = {}));
-var $;
-(function ($) {
-    var $mol_app_todomvc_ghost = (function (_super) {
-        __extends($mol_app_todomvc_ghost, _super);
-        function $mol_app_todomvc_ghost() {
-            _super.apply(this, arguments);
-        }
-        $mol_app_todomvc_ghost.prototype.visible = function () {
-            return true;
-        };
-        $mol_app_todomvc_ghost.prototype.attr = function () {
-            var _this = this;
-            return $.$mol_merge_dict(_super.prototype.attr.call(this), {
-                "mol_app_todomvc_ghost_visible": function () { return _this.visible(); },
-            });
-        };
-        return $mol_app_todomvc_ghost;
-    }($.$mol_viewer));
-    $.$mol_app_todomvc_ghost = $mol_app_todomvc_ghost;
 })($ || ($ = {}));
 var $;
 (function ($) {
@@ -3100,6 +3103,13 @@ var $;
                     _this.task(id, null);
                     return false;
                 }));
+            };
+            $mol_app_todomvc.prototype.panels = function () {
+                return [
+                    this.header(),
+                    this.lister(),
+                    this.footerVisible() ? this.footer() : null,
+                ];
             };
             $mol_app_todomvc.prototype.footerVisible = function () {
                 return this.taskIds().length > 0;
