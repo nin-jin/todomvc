@@ -1,13 +1,13 @@
 [Online benchmark](http://nin-jin.github.io/todomvc/benchmark/)
 
-# count=100
+# TASK_COUNT=100
 
 ![Results](results.count=100.png)
 
-# count=200
+# TASK_COUNT=200
 
 ![Results](results.count=200.png)
 
-# count=400
+# TASK_COUNT=400
 
 ![Results](results.count=400.png)
