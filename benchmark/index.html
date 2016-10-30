@@ -5,7 +5,7 @@
 <script type="text/javascript" src="https://www.google.com/jsapi"></script>
 <script src="benchmark-runner.js" defer></script>
 <style>
-iframe { border: 1px solid black; z-index: 1; position: absolute; }
+iframe { border: 1px solid black; z-index: 1; position: absolute; width: 800px! important; height: 600px !important }
 ol { list-style: none; margin: 0; padding: 0;     overflow: auto; flex: 1;}
 ol ol { margin-left: 2em; list-position: outside; }
 li li { display: inline-block }
@@ -139,6 +139,9 @@ function startTest() {
                     });
                 },
                 tests: [
+					new BenchmarkTestStep('Prepare', function (newTodo, contentWindow, contentDocument,done) {
+						done(newTodo)
+					}),
                     new BenchmarkTestStep('Adding ' + TASK_COUNT + ' Items', function (newTodo, contentWindow, contentDocument, done) {
                         var i = 0
                         step()
@@ -186,12 +189,12 @@ function startTest() {
                         function step( ) {
                             var toggleButton = contentDocument.querySelector('#toggle-all:not(:checked),.toggle-all:not(:checked),.todo__toggle-all:not(:checked),[mol_app_todomvc_allCompleter]:not([mol_checker_checked])');
 
-                            if( toggleButton ) {
+//                            if( toggleButton ) {
                                 toggleButton.click()
-                                setImmediate(step,0)
-                            } else {
+//                                setImmediate(step,0)
+//                            } else {
                                 done()
-                            }
+//                            }
                         }
                     }),
                     new BenchmarkTestStep('Deleting All Items', function (newTodo, contentWindow, contentDocument,done) {

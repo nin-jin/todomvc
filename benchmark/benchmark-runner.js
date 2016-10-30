@@ -245,8 +245,6 @@ BenchmarkRunner.prototype._removeFrame = function () {
 
 BenchmarkRunner.prototype._appendFrame = function (src) {
     var frame = document.createElement('iframe');
-    frame.style.width = '800px';
-    frame.style.height = '600px'
     document.body.appendChild(frame);
     this._frame = frame;
     return frame;
@@ -332,10 +330,10 @@ BenchmarkState.prototype.isFirstTest = function () {
 BenchmarkState.prototype.prepareCurrentSuite = function (runner, frame) {
     var suite = this.currentSuite();
     var promise = new SimplePromise;
-    frame.onload = function () {
-        suite.prepare(runner, frame.contentWindow, frame.contentDocument).then(function (result) { promise.resolve(result); });
-    }
-    frame.src = suite.url;
+	frame.src = suite.url;
+	frame.onload = function () {
+		suite.prepare(runner, frame.contentWindow, frame.contentDocument).then(function (result) { promise.resolve(result); });
+	}
     return promise;
 }
 
