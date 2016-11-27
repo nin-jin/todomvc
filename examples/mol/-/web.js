@@ -402,14 +402,12 @@ var $;
     var $mol_atom_status = $.$mol_atom_status;
     var $mol_atom = (function (_super) {
         __extends($mol_atom, _super);
-        function $mol_atom(handler, fail, host, field, key) {
+        function $mol_atom(handler, host, field) {
             if (field === void 0) { field = 'value()'; }
             _super.call(this);
             this.handler = handler;
-            this.fail = fail;
             this.host = host;
             this.field = field;
-            this.key = key;
             this.masters = null;
             this.slaves = null;
             this.status = $mol_atom_status.obsolete;
@@ -489,12 +487,7 @@ var $;
         $mol_atom.prototype.pull = function () {
             var host = this.host || this;
             try {
-                if (this.key !== void 0) {
-                    return this.handler.call(host, this.key);
-                }
-                else {
-                    return this.handler.call(host);
-                }
+                return this.handler();
             }
             catch (error) {
                 if (!error['$mol_atom_catched']) {
@@ -510,13 +503,7 @@ var $;
         };
         $mol_atom.prototype.set = function (next, prev) {
             var host = this.host || this;
-            var next2;
-            if (this.key !== void 0) {
-                next2 = this.handler.call(host, this.key, next, prev);
-            }
-            else {
-                next2 = this.handler.call(host, next, prev);
-            }
+            var next2 = this.handler(next, prev);
             if (next2 === void 0)
                 return host[this.field];
             return this.push(next2);
@@ -524,14 +511,6 @@ var $;
         $mol_atom.prototype.push = function (next) {
             var host = this.host || this;
             var prev = host[this.field];
-            if (next instanceof Error && this.fail) {
-                if (this.key !== void 0) {
-                    next = this.fail.call(host, this.key, host, next);
-                }
-                else {
-                    next = this.fail.call(host, host, next);
-                }
-            }
             comparing: if ((next instanceof Array) && (prev instanceof Array) && (next.length === prev.length)) {
                 for (var i = 0; i < next['length']; ++i) {
                     if (next[i] !== prev[i])
@@ -621,6 +600,13 @@ var $;
             this.masters.forEach(function (master) { return master.dislead(_this); });
             this.masters = null;
         };
+        $mol_atom.prototype.value = function (next, prev) {
+            if (next !== void 0)
+                return this.set(next, prev);
+            if (prev !== void 0)
+                return this.push(prev);
+            return this.get();
+        };
         $mol_atom.actualize = function (atom) {
             $mol_atom.updating.push(atom);
             $mol_atom.schedule();
@@ -685,11 +671,11 @@ var $;
         return $mol_atom_wait;
     }(Error));
     $.$mol_atom_wait = $mol_atom_wait;
-    function $mol_atom_task(handler, fail) {
+    function $mol_atom_task(handler) {
         var atom = new $mol_atom(function () {
             handler();
             atom.destroyed(true);
-        }, fail);
+        });
         $mol_atom.actualize(atom);
         return atom;
     }
@@ -710,15 +696,11 @@ var $;
                     atoms = host['$mol_atom_state'] = {};
                 var info = atoms[field];
                 if (!info) {
-                    atoms[field] = info = new $.$mol_atom(value, config && config.fail, host, field);
+                    atoms[field] = info = new $.$mol_atom(value.bind(host), host, field);
                     if (config)
                         info.autoFresh = !config.lazy;
                 }
-                if (next !== void 0)
-                    return info.set(next, prev);
-                if (prev !== void 0)
-                    return info.push(prev);
-                return info.get();
+                return info.value(next, prev);
             };
             void (descr.value['value'] = value);
         };
@@ -735,15 +717,11 @@ var $;
                     atoms = host['$mol_atom_state'] = {};
                 var info = atoms[field];
                 if (!info) {
-                    atoms[field] = info = new $.$mol_atom(value, config && config.fail, host, field, key);
+                    atoms[field] = info = new $.$mol_atom(value.bind(host, key), host, field);
                     if (config)
                         info.autoFresh = !config.lazy;
                 }
-                if (next !== void 0)
-                    return info.set(next, prev);
-                if (prev !== void 0)
-                    return info.push(prev);
-                return info.get();
+                return info.value(next, prev);
             };
             void (descr.value['value'] = value);
         };
@@ -771,7 +749,10 @@ var $;
             _super.apply(this, arguments);
         }
         $mol_window.size = function (next) {
-            return next || [window.innerWidth, window.innerHeight];
+            return next || {
+                width: window.innerWidth,
+                height: window.innerHeight,
+            };
         };
         __decorate([
             $.$mol_mem()
@@ -1093,7 +1074,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var $;
 (function ($) {
     $.$mol_viewer_context = {};
-    $.$mol_viewer_context.$mol_viewer_heightLimit = function () { return $.$mol_window.size()[1] * 1.5; };
+    $.$mol_viewer_context.$mol_viewer_heightLimit = function () { return $.$mol_window.size().height; };
     var $mol_viewer = (function (_super) {
         __extends($mol_viewer, _super);
         function $mol_viewer() {
@@ -1245,7 +1226,7 @@ var $;
                     node.removeAttribute(name_2);
                 }
                 else if (val === true) {
-                    node.setAttribute(name_2, name_2);
+                    node.setAttribute(name_2, 'true');
                 }
                 else {
                     node.setAttribute(name_2, String(val));
@@ -1253,7 +1234,7 @@ var $;
             }
         };
         $mol_viewer.renderFields = function (node, fields) {
-            for (var path in fields) {
+            var _loop_2 = function(path) {
                 var names = path.split('.');
                 var obj = node;
                 for (var i = 0; i < names.length - 1; ++i) {
@@ -1264,15 +1245,27 @@ var $;
                 var val = fields[path]();
                 if (obj[field] !== val) {
                     obj[field] = val;
+                    if (obj[field] !== val) {
+                        new $.$mol_defer(function () { return fields[path](obj[field]); });
+                    }
                 }
+            };
+            for (var path in fields) {
+                _loop_2(path);
             }
         };
         $mol_viewer.prototype.DOMTree = function (next) {
             var node = this.DOMNode();
-            $mol_viewer.renderChilds(node, this.childsVisible());
-            $mol_viewer.renderAttrs(node, this.attr());
-            $mol_viewer.renderFields(node, this.field());
-            return node;
+            try {
+                $mol_viewer.renderChilds(node, this.childsVisible());
+                $mol_viewer.renderAttrs(node, this.attr());
+                $mol_viewer.renderFields(node, this.field());
+                return node;
+            }
+            catch (error) {
+                node.setAttribute('mol_viewer_error', error.name);
+                throw error;
+            }
         };
         $mol_viewer.prototype.attr = function () {
             return {
@@ -1300,14 +1293,7 @@ var $;
             $.$mol_mem()
         ], $mol_viewer.prototype, "context", null);
         __decorate([
-            $.$mol_mem({
-                fail: function (self, error) {
-                    var node = self.DOMNode();
-                    if (node)
-                        node.setAttribute('mol_viewer_error', error.name);
-                    return error;
-                }
-            })
+            $.$mol_mem()
         ], $mol_viewer.prototype, "DOMTree", null);
         __decorate([
             $.$mol_mem_key()
@@ -1602,10 +1588,13 @@ var $;
         $mol_clicker.prototype.eventClick = function (next, prev) {
             return (next !== void 0) ? next : null;
         };
+        $mol_clicker.prototype.eventActivate = function (next, prev) {
+            return this.eventClick(next, prev);
+        };
         $mol_clicker.prototype.event = function () {
             var _this = this;
             return $.$mol_merge_dict(_super.prototype.event.call(this), {
-                "click": function (next, prev) { return _this.eventClick(next, prev); },
+                "click": function (next, prev) { return _this.eventActivate(next, prev); },
             });
         };
         $mol_clicker.prototype.disabled = function () {
@@ -1621,6 +1610,9 @@ var $;
         __decorate([
             $.$mol_mem()
         ], $mol_clicker.prototype, "eventClick", null);
+        __decorate([
+            $.$mol_mem()
+        ], $mol_clicker.prototype, "eventActivate", null);
         return $mol_clicker;
     }($.$mol_viewer));
     $.$mol_clicker = $mol_clicker;
@@ -1643,6 +1635,11 @@ var $;
             }
             $mol_clicker.prototype.disabled = function () {
                 return !this.enabled();
+            };
+            $mol_clicker.prototype.eventActivate = function (next) {
+                if (!this.enabled())
+                    return;
+                this.eventClick(next);
             };
             return $mol_clicker;
         }($.$mol_clicker));
@@ -1901,7 +1898,7 @@ var $;
             return null;
         };
         $mol_checker.prototype.label = function () {
-            return "";
+            return [];
         };
         $mol_checker.prototype.labeler = function (next, prev) {
             var _this = this;
@@ -1970,21 +1967,17 @@ var $;
         $mol_scroller.prototype.heightMinimal = function () {
             return 0;
         };
-        $mol_scroller.prototype.scrollTop = function () {
-            return 0;
+        $mol_scroller.prototype.scrollTop = function (next, prev) {
+            return (next !== void 0) ? next : 0;
         };
-        $mol_scroller.prototype.scrollLeft = function () {
-            return 0;
-        };
-        $mol_scroller.prototype.shadowStyle = function () {
-            return "";
+        $mol_scroller.prototype.scrollLeft = function (next, prev) {
+            return (next !== void 0) ? next : 0;
         };
         $mol_scroller.prototype.field = function () {
             var _this = this;
             return $.$mol_merge_dict(_super.prototype.field.call(this), {
-                "scrollTop": function () { return _this.scrollTop(); },
-                "scrollLeft": function () { return _this.scrollLeft(); },
-                "style.boxShadow": function () { return _this.shadowStyle(); },
+                "scrollTop": function (next, prev) { return _this.scrollTop(next, prev); },
+                "scrollLeft": function (next, prev) { return _this.scrollLeft(next, prev); },
             });
         };
         $mol_scroller.prototype.eventScroll = function (next, prev) {
@@ -1998,6 +1991,12 @@ var $;
                 "underflow": function (next, prev) { return _this.eventScroll(next, prev); },
             });
         };
+        __decorate([
+            $.$mol_mem()
+        ], $mol_scroller.prototype, "scrollTop", null);
+        __decorate([
+            $.$mol_mem()
+        ], $mol_scroller.prototype, "scrollLeft", null);
         __decorate([
             $.$mol_mem()
         ], $mol_scroller.prototype, "eventScroll", null);
@@ -2091,8 +2090,8 @@ var $;
                 this.moving(true);
                 new $.$mol_defer(function () {
                     var el = _this.DOMNode();
-                    _this.scrollTop(el.scrollTop);
-                    _this.scrollLeft(el.scrollLeft);
+                    _this.scrollTop(Math.max(0, el.scrollTop));
+                    _this.scrollLeft(Math.max(0, el.scrollLeft));
                     _this.scrollBottom(Math.max(0, el.scrollHeight - el.scrollTop - el.offsetHeight));
                     _this.scrollRight(Math.max(0, el.scrollWidth - el.scrollLeft - el.offsetWidth));
                 });
@@ -2687,6 +2686,7 @@ var $;
             __extends($mol_app_todomvc, _super);
             function $mol_app_todomvc() {
                 _super.apply(this, arguments);
+                this._idSeed = 0;
             }
             $mol_app_todomvc.prototype.taskIds = function (next) {
                 return $.$mol_state_local.value(this.stateKey('taskIds'), next) || [];
@@ -2733,7 +2733,7 @@ var $;
                 var title = this.taskNewTitle();
                 if (!title)
                     return;
-                var id = Date.now();
+                var id = ++this._idSeed;
                 var task = { completed: false, title: title };
                 this.task(id, task);
                 this.taskIds(this.taskIds().concat(id));
