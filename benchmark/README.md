@@ -1,3 +1,5 @@
+This benchmark is obsolete. See next version instead: http://eigenmethod.github.io/todomvc/benchmark/
+
 [Online benchmark](http://nin-jin.github.io/todomvc/benchmark/)
 
 # TASK_COUNT=100
